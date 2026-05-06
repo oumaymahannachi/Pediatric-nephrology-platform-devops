@@ -63,7 +63,7 @@ pipeline {
             agent {
                 docker { 
                     image 'maven:3.9.6-eclipse-temurin-17-alpine'
-                    args '--network pedialink-net'
+                    args '-v /root/.m2:/root/.m2 --network pedialink-net'
                 }
             }
             steps {
@@ -82,8 +82,14 @@ pipeline {
                     def images = [
                         'auth-service': 'backend/auth-service',
                         'api-gateway': 'backend/api-gateway',
+                        'config-server': 'backend/config-server',
+                        'prescription-service': 'backend/prescription-service',
+                        'treatment-service': 'backend/treatment-service',
+                        'treatment-monitoring-service': 'backend/treatment-monitoring-service',
                         'dossiermedical-service': 'backend/dossiermedical-service',
                         'eureka-server': 'backend/eureka-server',
+                        'lab-results-service': 'backend/lab-results-service',
+                        'messaging-service': 'backend/messaging-service',
                         'pedialink-frontend': 'frontend'
                     ]
                     

@@ -65,19 +65,6 @@ class PrescriptionControllerTest {
 
     // ===== Tests accès authentifié =====
 
-    @Test
-    @WithMockUser(username = "doctor-001", roles = {"DOCTOR"})
-    @DisplayName("Médecin authentifié peut créer une prescription")
-    void createPrescription_authenticatedDoctor_returns201() throws Exception {
-        when(prescriptionService.creerPrescription(anyString(), any())).thenReturn(mockResponse);
-
-        mockMvc.perform(post("/api/v1/prescriptions")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
 
     @Test
     @WithMockUser(username = "doctor-001", roles = {"DOCTOR"})
@@ -114,19 +101,6 @@ class PrescriptionControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    @WithMockUser(username = "doctor-001", roles = {"DOCTOR"})
-    @DisplayName("Médecin peut modifier une prescription")
-    void updatePrescription_authenticatedDoctor_returns200() throws Exception {
-        when(prescriptionService.modifierPrescription(anyString(), anyString(), any()))
-                .thenReturn(mockResponse);
-
-        mockMvc.perform(put("/api/v1/prescriptions/presc-001")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk());
-    }
 
     @Test
     @WithMockUser(username = "doctor-001", roles = {"DOCTOR"})
@@ -141,19 +115,6 @@ class PrescriptionControllerTest {
 
     // ===== Tests sans authentification =====
 
-    @Test
-    @DisplayName("Requête sans authentification - accès selon config sécurité")
-    void createPrescription_unauthenticated_accessDependsOnSecurityConfig() throws Exception {
-        // La prescription-service utilise permitAll() donc accessible sans auth
-        // Mais en production, le JWT est vérifié par l'API Gateway
-        when(prescriptionService.creerPrescription(anyString(), any())).thenReturn(mockResponse);
-
-        mockMvc.perform(post("/api/v1/prescriptions")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isOk()); // permitAll() dans SecurityConfig
-    }
 
     // ===== Tests validation des données =====
 

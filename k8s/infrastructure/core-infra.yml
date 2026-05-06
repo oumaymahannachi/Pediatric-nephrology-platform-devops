@@ -67,6 +67,6 @@ spec:
     spec:
       containers:
       - name: eureka-server
-        image: localhost:5005/eureka-server:latest # À adapter selon votre registry
+        image: oumaymahannachi/eureka-server:latest
         ports:
           - containerPort: 8761

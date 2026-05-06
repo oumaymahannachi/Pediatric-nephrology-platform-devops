@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        REGISTRY = "pedialink-registry:5000" 
+        REGISTRY = "oumaymahannachi" 
         SONAR_URL = "http://pedialink-sonarqube:9000"
     }
 
@@ -51,9 +51,12 @@ pipeline {
             steps {
                 dir('backend') {
                     echo "Running SonarQube Analysis..."
-                    // script {
-                    //     sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL}"
-                    // }
+                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                        sh "mvn sonar:sonar \
+                            -Dsonar.host.url=${SONAR_URL} \
+                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.projectKey=pedialink-backend"
+                    }
                 }
             }
         }
@@ -65,13 +68,20 @@ pipeline {
                         'auth-service': 'backend/auth-service',
                         'api-gateway': 'backend/api-gateway',
                         'dossiermedical-service': 'backend/dossiermedical-service',
+                        'eureka-server': 'backend/eureka-server',
                         'pedialink-frontend': 'frontend'
                     ]
                     
-                    images.each { name, path ->
-                        echo "Processing ${name}..."
-                        sh "docker build -t ${REGISTRY}/${name}:latest ${path}"
-                        sh "docker push ${REGISTRY}/${name}:latest"
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        
+                        images.each { name, path ->
+                            echo "Processing ${name}..."
+                            dir(path) {
+                                sh "docker build -t ${REGISTRY}/${name}:latest ."
+                                sh "docker push ${REGISTRY}/${name}:latest"
+                            }
+                        }
                     }
                 }
             }

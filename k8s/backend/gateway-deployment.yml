@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: localhost:5005/api-gateway:latest
+        image: oumaymahannachi/api-gateway:latest
         ports:
           - containerPort: 8080
         env:

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: localhost:5005/auth-service:latest
+        image: oumaymahannachi/auth-service:latest
         ports:
         - containerPort: 8081
         env:

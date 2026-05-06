@@ -1,7 +1,7 @@
 services:
   # --- JENKINS ---
   jenkins:
-    image: jenkins/jenkins:lts
+    build: ./devops/jenkins
     container_name: pedialink-jenkins
     user: root # Nécessaire pour accéder à /var/run/docker.sock
     ports:
@@ -12,6 +12,7 @@ services:
     volumes:
       - ./devops/jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.kube:/var/jenkins_home/.kube # Pour que kubectl puisse accéder au cluster
     networks:
       - pedialink-net
     restart: unless-stopped

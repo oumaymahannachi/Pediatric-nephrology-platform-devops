@@ -27,6 +27,6 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: localhost:5005/pedialink-frontend:latest
+        image: oumaymahannachi/pedialink-frontend:latest
         ports:
           - containerPort: 80

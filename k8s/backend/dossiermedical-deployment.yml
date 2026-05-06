@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: dossiermedical-service
-        image: localhost:5005/dossiermedical-service:latest
+        image: oumaymahannachi/dossiermedical-service:latest
         ports:
           - containerPort: 8087
         env:

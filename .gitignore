@@ -1,0 +1,74 @@
+# Backend - Maven
+**/target/
+**/*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Backend - Gradle (if any)
+**/build/
+**/.gradle/
+
+# Backend - Spring
+**/*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.sass-cache/
+
+# IDE - IntelliJ
+**/.idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+
+# IDE - VS Code
+.vscode/
+
+# IDE - Eclipse
+**/.classpath
+**/.project
+**/.settings/
+
+# IDE - General
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Env
+.env
+*.env.local
+*.env.*.local
+
+# Docker
+**/docker-compose.override.yml
+
+# Test scripts
+e2e-test*.sh
+
+# Misc
+*.bak
+*.tmp
+*.orig
+
+# DevOps Data (Should be transferred via Disk, not Git)
+devops/jenkins_home/
+devops/sonarqube_data/
+devops/sonarqube_extensions/
+devops/sonarqube_logs/
+devops/sonar_db_data/
+devops/prometheus_data/
+devops/grafana/
+devops/registry_data/
+
+# Kubernetes - SECURITY: Real kubeconfig must NOT be committed
+# The file devops/kubeconfig is intentionally kept as a placeholder
+# Fill it with your real kubeconfig on the target machine:
+#   kubectl config view --minify --flatten > devops/kubeconfig
+# devops/kubeconfig  <-- Uncomment this line to ignore the real kubeconfig after filling it

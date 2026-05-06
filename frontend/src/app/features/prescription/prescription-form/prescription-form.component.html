@@ -1,0 +1,254 @@
+<div class="prescription-form-container">
+  <div class="header">
+    <h2>{{ isEditMode ? 'Modifier la Prescription' : 'Nouvelle Prescription' }}</h2>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <form [formGroup]="prescriptionForm" (ngSubmit)="onSubmit()">
+    <div class="form-section">
+      <h3>Informations Générales</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="patientId">Enfant *</label>
+          <select 
+            id="patientId" 
+            formControlName="patientId"
+            class="form-control"
+            [disabled]="!!patientId">
+            <option value="">-- Sélectionner un enfant --</option>
+            <option *ngFor="let patient of patients" [value]="patient.id">
+              {{ patient.fullName }} - {{ patient.dateOfBirth | date: 'dd/MM/yyyy' }} ({{ patient.gender === 'MALE' ? 'Garçon' : 'Fille' }})
+            </option>
+          </select>
+          <small *ngIf="loadingPatients" class="text-muted">Chargement des enfants...</small>
+        </div>
+
+        <div class="form-group">
+          <label for="datePrescription">Date de Prescription *</label>
+          <input 
+            type="date" 
+            id="datePrescription" 
+            formControlName="datePrescription"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="dureeValiditeJours">Durée de Validité (jours) *</label>
+          <input 
+            type="number" 
+            id="dureeValiditeJours" 
+            formControlName="dureeValiditeJours"
+            class="form-control"
+            min="1"
+            max="365">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="diagnostic">Diagnostic *</label>
+        <textarea 
+          id="diagnostic" 
+          formControlName="diagnostic"
+          class="form-control"
+          rows="3"
+          maxlength="500"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="renouvelable">
+            Prescription renouvelable
+          </label>
+        </div>
+
+        <div class="form-group" *ngIf="prescriptionForm.get('renouvelable')?.value">
+          <label for="nombreRenouvellementsAutorises">Nombre de Renouvellements</label>
+          <input 
+            type="number" 
+            id="nombreRenouvellementsAutorises" 
+            formControlName="nombreRenouvellementsAutorises"
+            class="form-control"
+            min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea 
+          id="notes" 
+          formControlName="notes"
+          class="form-control"
+          rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h3>Médicaments</h3>
+        <button type="button" class="btn-add" (click)="addMedicament()">
+          <i class="fas fa-plus"></i> Ajouter un médicament
+        </button>
+      </div>
+
+      <div formArrayName="medicaments">
+        <div *ngFor="let medicament of medicaments.controls; let i = index" class="medicament-card">
+          <div [formGroupName]="i">
+            <div class="card-header">
+              <h4>Médicament {{ i + 1 }}</h4>
+              <button 
+                type="button" 
+                class="btn-remove" 
+                (click)="removeMedicament(i)"
+                *ngIf="medicaments.length > 1">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom Commercial *</label>
+                <input type="text" formControlName="nomCommercial" class="form-control">
+              </div>
+
+              <div class="form-group">
+                <label>DCI *</label>
+                <input type="text" formControlName="dci" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Forme Pharmaceutique</label>
+                <select formControlName="formePharmaceutique" class="form-control">
+                  <option value="">Sélectionner</option>
+                  <option value="Comprimé">Comprimé</option>
+                  <option value="Gélule">Gélule</option>
+                  <option value="Sirop">Sirop</option>
+                  <option value="Solution injectable">Solution injectable</option>
+                  <option value="Pommade">Pommade</option>
+                  <option value="Suppositoire">Suppositoire</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Dosage</label>
+                <input type="text" formControlName="dosage" class="form-control" placeholder="ex: 500mg">
+              </div>
+            </div>
+
+            <div formGroupName="posologie">
+              <h5>Posologie</h5>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Quantité *</label>
+                  <input type="number" formControlName="quantite" class="form-control" min="0" step="0.5">
+                </div>
+
+                <div class="form-group">
+                  <label>Unité *</label>
+                  <select formControlName="unite" class="form-control">
+                    <option value="comprimé(s)">Comprimé(s)</option>
+                    <option value="gélule(s)">Gélule(s)</option>
+                    <option value="ml">ml</option>
+                    <option value="mg">mg</option>
+                    <option value="cuillère(s) à café">Cuillère(s) à café</option>
+                    <option value="cuillère(s) à soupe">Cuillère(s) à soupe</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Fréquence *</label>
+                  <select formControlName="frequence" class="form-control">
+                    <option value="">Sélectionner</option>
+                    <option value="1 fois par jour">1 fois par jour</option>
+                    <option value="2 fois par jour">2 fois par jour</option>
+                    <option value="3 fois par jour">3 fois par jour</option>
+                    <option value="4 fois par jour">4 fois par jour</option>
+                    <option value="Toutes les 4 heures">Toutes les 4 heures</option>
+                    <option value="Toutes les 6 heures">Toutes les 6 heures</option>
+                    <option value="Toutes les 8 heures">Toutes les 8 heures</option>
+                    <option value="Toutes les 12 heures">Toutes les 12 heures</option>
+                    <option value="Si besoin">Si besoin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Moment de Prise</label>
+                  <select formControlName="momentPrise" class="form-control">
+                    <option value="">Sélectionner</option>
+                    <option value="Avant les repas">Avant les repas</option>
+                    <option value="Pendant les repas">Pendant les repas</option>
+                    <option value="Après les repas">Après les repas</option>
+                    <option value="À jeun">À jeun</option>
+                    <option value="Au coucher">Au coucher</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Durée du Traitement (jours)</label>
+                  <input type="number" formControlName="dureeTraitementJours" class="form-control" min="1">
+                </div>
+
+                <div class="form-group">
+                  <label>Poids du Patient (kg)</label>
+                  <input type="number" formControlName="poidsPatientKg" class="form-control" min="0" step="0.1">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group checkbox-group">
+                  <label>
+                    <input type="checkbox" formControlName="ajustementRenal">
+                    Ajustement rénal
+                  </label>
+                </div>
+
+                <div class="form-group checkbox-group">
+                  <label>
+                    <input type="checkbox" formControlName="ajustementHepatique">
+                    Ajustement hépatique
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" *ngIf="medicament.get('posologie.ajustementRenal')?.value || medicament.get('posologie.ajustementHepatique')?.value">
+                <label>Justification de l'Ajustement</label>
+                <textarea formControlName="justificationAjustement" class="form-control" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Instructions Spéciales</label>
+              <textarea formControlName="instructionsSpeciales" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" formControlName="substitutable">
+                Médicament substitutable
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="cancel()">
+        Annuler
+      </button>
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        <i class="fas fa-save"></i>
+        {{ loading ? 'Enregistrement...' : 'Enregistrer la Prescription' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,362 @@
+<div class="medical-monitoring">
+  <div class="header">
+    <h1><i class="fas fa-heartbeat"></i> Medical Monitoring</h1>
+    
+    <div class="child-selector" *ngIf="children.length > 0">
+      <label for="childSelect">Select Child:</label>
+      <select id="childSelect" [(ngModel)]="selectedChildId" (change)="onChildChange()" class="form-select">
+        <option [value]="null">-- Select a child --</option>
+        <option *ngFor="let child of children" [value]="child.id">
+          {{ child.fullName }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div *ngIf="!loading && children.length === 0" class="empty">
+    <i class="fas fa-child"></i>
+    <p>No children registered yet</p>
+  </div>
+
+  <div *ngIf="!loading && selectedChild" class="content">
+    <div class="child-info">
+      <h3>{{ selectedChild.fullName }}</h3>
+      <p>Age: {{ calculateAge(selectedChild.dateOfBirth) }} | Gender: {{ selectedChild.gender }}</p>
+    </div>
+
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'dialysis'" 
+        (click)="setTab('dialysis')">
+        <i class="fas fa-tint"></i> Dialysis
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'labs'" 
+        (click)="setTab('labs')">
+        <i class="fas fa-flask"></i> Lab Tests
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'imaging'" 
+        (click)="setTab('imaging')">
+        <i class="fas fa-x-ray"></i> Medical Imaging
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'history'" 
+        (click)="setTab('history')">
+        <i class="fas fa-chart-line"></i> Comparative History
+      </button>
+    </div>
+
+    <div class="tab-content">
+      
+      <div *ngIf="activeTab === 'dialysis'" class="tab-panel">
+        <h2><i class="fas fa-tint"></i> Dialysis Prescriptions</h2>
+        
+        <div *ngIf="dialysisPrescriptions.length === 0" class="empty-state">
+          <i class="fas fa-file-medical"></i>
+          <p>No dialysis prescriptions found</p>
+        </div>
+
+        <div class="prescriptions-grid">
+          <div *ngFor="let prescription of dialysisPrescriptions" class="prescription-card">
+            <div class="card-header" [class.inactive]="!prescription.active">
+              <h3>{{ prescription.type }}</h3>
+              <span class="badge" [class.active]="prescription.active">
+                {{ prescription.active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="detail-row">
+                <i class="fas fa-calendar-week"></i>
+                <span><strong>Frequency:</strong> {{ prescription.frequencyPerWeek }} times/week</span>
+              </div>
+              <div class="detail-row">
+                <i class="fas fa-clock"></i>
+                <span><strong>Duration:</strong> {{ prescription.sessionDurationMinutes }} minutes</span>
+              </div>
+              <div class="detail-row" *ngIf="prescription.bloodFlowRate">
+                <i class="fas fa-tint"></i>
+                <span><strong>Blood Flow:</strong> {{ prescription.bloodFlowRate }} ml/min</span>
+              </div>
+              <div class="detail-row" *ngIf="prescription.vascularAccess">
+                <i class="fas fa-syringe"></i>
+                <span><strong>Vascular Access:</strong> {{ prescription.vascularAccess }}</span>
+              </div>
+              <div class="detail-row">
+                <i class="fas fa-calendar-alt"></i>
+                <span><strong>Start Date:</strong> {{ prescription.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="detail-row" *ngIf="prescription.notes">
+                <i class="fas fa-notes-medical"></i>
+                <span><strong>Notes:</strong> {{ prescription.notes }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div *ngIf="activeTab === 'labs'" class="tab-panel">
+        <h2><i class="fas fa-flask"></i> Laboratory Tests</h2>
+        
+        <div *ngIf="bloodTests.length === 0 && labResults.length === 0" class="empty-state">
+          <i class="fas fa-flask"></i>
+          <p>No laboratory tests found</p>
+        </div>
+
+        
+        <div *ngIf="bloodTests.length > 0" class="section">
+          <h3><i class="fas fa-vial"></i> Blood Tests</h3>
+          <div class="tests-grid">
+            <div *ngFor="let test of bloodTests" class="test-card" [class.abnormal]="test.abnormal">
+              <div class="card-header">
+                <h4>{{ test.testType }}</h4>
+                <span class="badge" [class.abnormal]="test.abnormal">
+                  {{ test.abnormal ? 'Abnormal' : 'Normal' }}
+                </span>
+              </div>
+              <div class="card-body">
+                <div class="detail-row">
+                  <i class="fas fa-calendar"></i>
+                  <span><strong>Date:</strong> {{ test.testDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="detail-row" *ngIf="test.laboratoryName">
+                  <i class="fas fa-hospital"></i>
+                  <span><strong>Laboratory:</strong> {{ test.laboratoryName }}</span>
+                </div>
+                <div class="detail-row" *ngIf="test.interpretation">
+                  <i class="fas fa-notes-medical"></i>
+                  <span><strong>Interpretation:</strong> {{ test.interpretation }}</span>
+                </div>
+                <div class="detail-row" *ngIf="test.notes">
+                  <i class="fas fa-comment"></i>
+                  <span><strong>Notes:</strong> {{ test.notes }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div *ngIf="labResults.length > 0" class="section">
+          <h3><i class="fas fa-microscope"></i> Lab Results</h3>
+          <div class="tests-grid">
+            <div *ngFor="let result of labResults" class="test-card" [class.abnormal]="result.abnormal">
+              <div class="card-header">
+                <h4>{{ result.testName }}</h4>
+                <span class="badge" [class.result]="result.result === 'NORMAL'" [class.abnormal]="result.result !== 'NORMAL'">
+                  {{ result.result }}
+                </span>
+              </div>
+              <div class="card-body">
+                <div class="detail-row">
+                  <i class="fas fa-calendar"></i>
+                  <span><strong>Date:</strong> {{ result.testDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="detail-row">
+                  <i class="fas fa-flask"></i>
+                  <span><strong>Type:</strong> {{ result.testType }}</span>
+                </div>
+                <div class="detail-row" *ngIf="result.specimenType">
+                  <i class="fas fa-vial"></i>
+                  <span><strong>Specimen:</strong> {{ result.specimenType }}</span>
+                </div>
+                <div class="detail-row" *ngIf="result.findings">
+                  <i class="fas fa-search"></i>
+                  <span><strong>Findings:</strong> {{ result.findings }}</span>
+                </div>
+                <div class="detail-row" *ngIf="result.details">
+                  <i class="fas fa-info-circle"></i>
+                  <span><strong>Details:</strong> {{ result.details }}</span>
+                </div>
+                <div class="detail-row" *ngIf="result.laboratoryName">
+                  <i class="fas fa-hospital"></i>
+                  <span><strong>Laboratory:</strong> {{ result.laboratoryName }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div *ngIf="activeTab === 'imaging'" class="tab-panel">
+        <h2><i class="fas fa-x-ray"></i> Medical Imaging</h2>
+        
+        <div *ngIf="medicalImagings.length === 0" class="empty-state">
+          <i class="fas fa-x-ray"></i>
+          <p>No medical imaging records found</p>
+        </div>
+
+        <div class="imaging-grid">
+          <div *ngFor="let imaging of medicalImagings" class="imaging-card" [class.abnormal]="imaging.abnormal">
+            <div class="card-header">
+              <h4>{{ imaging.imagingType }} - {{ imaging.bodyPart }}</h4>
+              <div class="badges">
+                <span class="badge urgency" [class.normal]="imaging.urgencyLevel === 'NORMAL'" 
+                      [class.urgent]="imaging.urgencyLevel === 'URGENT'" 
+                      [class.critical]="imaging.urgencyLevel === 'CRITICAL'">
+                  {{ imaging.urgencyLevel }}
+                </span>
+                <span class="badge status" [class.pending]="imaging.status === 'PENDING'" 
+                      [class.completed]="imaging.status === 'COMPLETED'" 
+                      [class.reviewed]="imaging.status === 'REVIEWED'">
+                  {{ imaging.status }}
+                </span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="detail-row">
+                <i class="fas fa-calendar"></i>
+                <span><strong>Date:</strong> {{ imaging.imagingDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.performedBy">
+                <i class="fas fa-user-md"></i>
+                <span><strong>Performed By:</strong> {{ imaging.performedBy }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.radiologistName">
+                <i class="fas fa-user-doctor"></i>
+                <span><strong>Radiologist:</strong> {{ imaging.radiologistName }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.facilityName">
+                <i class="fas fa-hospital"></i>
+                <span><strong>Facility:</strong> {{ imaging.facilityName }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.indication">
+                <i class="fas fa-clipboard"></i>
+                <span><strong>Indication:</strong> {{ imaging.indication }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.findings">
+                <i class="fas fa-search"></i>
+                <span><strong>Findings:</strong> {{ imaging.findings }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.impression">
+                <i class="fas fa-stethoscope"></i>
+                <span><strong>Impression:</strong> {{ imaging.impression }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.recommendation">
+                <i class="fas fa-lightbulb"></i>
+                <span><strong>Recommendation:</strong> {{ imaging.recommendation }}</span>
+              </div>
+              <div class="detail-row" *ngIf="imaging.followUpRequired">
+                <i class="fas fa-calendar-check"></i>
+                <span><strong>Follow-up:</strong> {{ imaging.followUpDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="detail-row" *ngIf="hasAttachments(imaging)">
+                <i class="fas fa-paperclip"></i>
+                <span><strong>Attachments:</strong> 
+                  {{ (imaging.imageUrls?.length || 0) + (imaging.documentUrls?.length || 0) }} file(s)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div *ngIf="activeTab === 'history'" class="tab-panel">
+        <h2><i class="fas fa-chart-line"></i> Comparative History</h2>
+        
+        <div *ngIf="allHistory.length === 0" class="empty-state">
+          <i class="fas fa-chart-line"></i>
+          <p>No examination history found</p>
+        </div>
+
+        <div *ngIf="allHistory.length > 0">
+          
+          <div class="history-filters">
+            <div class="filter-group">
+              <label>Type:</label>
+              <select [(ngModel)]="historyFilter" (change)="filterHistory()" class="form-select">
+                <option value="all">All Types</option>
+                <option value="blood">Blood Tests</option>
+                <option value="lab">Lab Results</option>
+                <option value="imaging">Medical Imaging</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Date Range:</label>
+              <select [(ngModel)]="dateRange" (change)="filterHistory()" class="form-select">
+                <option value="all">All Time</option>
+                <option value="week">Last Week</option>
+                <option value="month">Last Month</option>
+                <option value="3months">Last 3 Months</option>
+                <option value="6months">Last 6 Months</option>
+                <option value="year">Last Year</option>
+              </select>
+            </div>
+          </div>
+
+          
+          <div class="history-stats">
+            <div class="stat-card">
+              <i class="fas fa-vial"></i>
+              <div class="stat-content">
+                <span class="stat-value">{{ getCountByType('blood') }}</span>
+                <span class="stat-label">Blood Tests</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-microscope"></i>
+              <div class="stat-content">
+                <span class="stat-value">{{ getCountByType('lab') }}</span>
+                <span class="stat-label">Lab Results</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-x-ray"></i>
+              <div class="stat-content">
+                <span class="stat-value">{{ getCountByType('imaging') }}</span>
+                <span class="stat-label">Imaging</span>
+              </div>
+            </div>
+            <div class="stat-card abnormal">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div class="stat-content">
+                <span class="stat-value">{{ getAbnormalCount() }}</span>
+                <span class="stat-label">Abnormal</span>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="history-timeline">
+            <div *ngFor="let item of filteredHistory" class="timeline-item" [class.abnormal]="item.abnormal">
+              <div class="timeline-marker" [class.blood]="item.type === 'blood'" 
+                   [class.lab]="item.type === 'lab'" 
+                   [class.imaging]="item.type === 'imaging'">
+                <i class="fas" [class.fa-vial]="item.type === 'blood'" 
+                   [class.fa-microscope]="item.type === 'lab'" 
+                   [class.fa-x-ray]="item.type === 'imaging'"></i>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <h4>{{ item.title }}</h4>
+                  <span class="timeline-date">{{ item.date | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="timeline-body">
+                  <span class="badge" [class.abnormal]="item.abnormal">
+                    {{ item.abnormal ? 'Abnormal' : 'Normal' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !selectedChild && children.length > 0" class="select-prompt">
+    <i class="fas fa-hand-pointer"></i>
+    <p>Please select a child to view their medical monitoring data</p>
+  </div>
+</div>

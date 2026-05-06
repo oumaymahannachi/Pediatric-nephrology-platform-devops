@@ -1,0 +1,143 @@
+<div class="ocr-scanner-container">
+  <div class="header">
+    <h2><i class="fas fa-camera"></i> Scan Prescription</h2>
+    <p class="subtitle">Upload an image of a prescription to extract information automatically</p>
+  </div>
+
+  
+  <div class="upload-section" *ngIf="!previewUrl">
+    <div class="upload-box" (click)="triggerFileInput()">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <h3>Click to upload or drag and drop</h3>
+      <p>Supported formats: JPG, PNG (Max 5MB)</p>
+      <input 
+        type="file" 
+        id="fileInput"
+        accept="image/jpeg,image/png,image/jpg"
+        (change)="onFileSelected($event)"
+        style="display: none"
+      />
+    </div>
+  </div>
+
+  
+  <div class="preview-section" *ngIf="previewUrl && !extractedData">
+    <div class="preview-card">
+      <div class="preview-header">
+        <h3><i class="fas fa-image"></i> Image Preview</h3>
+        <button class="btn-secondary" (click)="reset()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+      </div>
+      
+      <div class="image-preview">
+        <img [src]="previewUrl" alt="Prescription preview" />
+      </div>
+
+      <div class="preview-actions">
+        <button 
+          class="btn-primary btn-large" 
+          (click)="scanPrescription()"
+          [disabled]="isProcessing">
+          <i [class]="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-magic'"></i>
+          {{ isProcessing ? 'Processing...' : 'Extract Prescription' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="error-message" *ngIf="error">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ error }}
+  </div>
+
+  
+  <div class="extracted-section" *ngIf="extractedData && extractedData.success">
+    <div class="success-message">
+      <i class="fas fa-check-circle"></i>
+      Prescription extracted successfully!
+    </div>
+
+    <div class="extracted-card">
+      <div class="extracted-header">
+        <h3><i class="fas fa-file-medical"></i> Extracted Information</h3>
+        <button class="btn-secondary" (click)="reset()">
+          <i class="fas fa-redo"></i> Scan Another
+        </button>
+      </div>
+
+      <div class="extracted-content">
+        
+        <div class="info-row" *ngIf="extractedData.diagnostic">
+          <div class="info-label">
+            <i class="fas fa-stethoscope"></i>
+            Diagnosis
+          </div>
+          <div class="info-value">{{ extractedData.diagnostic }}</div>
+        </div>
+
+        
+        <div class="info-row" *ngIf="extractedData.datePrescription">
+          <div class="info-label">
+            <i class="fas fa-calendar"></i>
+            Date
+          </div>
+          <div class="info-value">{{ extractedData.datePrescription }}</div>
+        </div>
+
+        
+        <div class="medications-section" *ngIf="extractedData.medicaments && extractedData.medicaments.length > 0">
+          <h4><i class="fas fa-pills"></i> Medications ({{ extractedData.medicaments.length }})</h4>
+          
+          <div class="medication-card" *ngFor="let med of extractedData.medicaments; let i = index">
+            <div class="med-number">{{ i + 1 }}</div>
+            <div class="med-details">
+              <div class="med-name">
+                {{ med.nomCommercial }} 
+                <span class="med-dosage" *ngIf="med.dosage">{{ med.dosage }}</span>
+              </div>
+              <div class="med-info" *ngIf="med.posologie">
+                <i class="fas fa-info-circle"></i>
+                {{ med.posologie.instructions }}
+              </div>
+              <div class="med-duration" *ngIf="med.posologie?.dureeTraitementJours">
+                <i class="fas fa-clock"></i>
+                Duration: {{ med.posologie.dureeTraitementJours }} days
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="info-row" *ngIf="extractedData.notes">
+          <div class="info-label">
+            <i class="fas fa-sticky-note"></i>
+            Notes
+          </div>
+          <div class="info-value">{{ extractedData.notes }}</div>
+        </div>
+
+        
+        <div class="info-row">
+          <div class="info-label">
+            <i class="fas fa-redo"></i>
+            Renewable
+          </div>
+          <div class="info-value">
+            <span [class]="extractedData.renouvelable ? 'badge-yes' : 'badge-no'">
+              {{ extractedData.renouvelable ? 'Yes' : 'No' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="extracted-actions">
+        <button class="btn-primary btn-large" (click)="usePrescription()">
+          <i class="fas fa-check"></i>
+          Use This Data
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

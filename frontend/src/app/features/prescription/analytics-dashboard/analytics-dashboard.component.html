@@ -1,0 +1,79 @@
+<div class="analytics-container">
+  <div class="header">
+    <h2>📊 Tableau de Bord Analytique</h2>
+    <select [(ngModel)]="selectedPeriod" (change)="onPeriodChange()" class="period-select">
+      <option [value]="7">7 derniers jours</option>
+      <option [value]="30">30 derniers jours</option>
+      <option [value]="90">90 derniers jours</option>
+      <option [value]="365">1 an</option>
+    </select>
+  </div>
+
+  
+  <div class="stats-section" *ngIf="medecinStats">
+    <h3>Mes Statistiques</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ medecinStats.totalPrescriptions }}</div>
+        <div class="stat-label">Prescriptions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ medecinStats.prescriptionsRenouvelables }}</div>
+        <div class="stat-label">Renouvelables</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ medecinStats.tauxRenouvellement }}%</div>
+        <div class="stat-label">Taux renouvellement</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h4>Répartition par statut</h4>
+      <div class="status-list">
+        <div class="status-item" *ngFor="let statut of getStatutKeys()">
+          <span class="status-name">{{ statut }}</span>
+          <span class="status-count">{{ medecinStats.repartitionStatut[statut] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h4>Top 10 Médicaments Prescrits</h4>
+      <div class="med-list">
+        <div class="med-item" *ngFor="let item of medecinStats.topMedicaments | keyvalue">
+          <span class="med-name">{{ item.key }}</span>
+          <span class="med-count">{{ item.value }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="top-section" *ngIf="topMedicaments">
+    <h3>Médicaments les Plus Prescrits (Global)</h3>
+    <div class="top-list">
+      <div class="top-item" *ngFor="let item of topMedicaments.topMedicaments; let i = index">
+        <span class="rank">{{ i + 1 }}</span>
+        <span class="name">{{ item.medicament }}</span>
+        <span class="count">{{ item.nombrePrescriptions }} prescriptions</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="interactions-section" *ngIf="interactions">
+    <h3>⚠️ Interactions Médicamenteuses Fréquentes</h3>
+    <div class="interaction-list">
+      <div class="interaction-item" *ngFor="let inter of interactions.interactionsFrequentes">
+        <div class="interaction-header">
+          <span class="badge badge-danger">{{ inter.severite }}</span>
+          <span class="frequency">{{ inter.frequence }} cas détectés</span>
+        </div>
+        <div class="interaction-body">
+          <strong>{{ inter.medicament1 }} + {{ inter.medicament2 }}</strong>
+          <p>{{ inter.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,178 @@
+.treatment-list-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  color: #2c3e50;
+  font-size: 28px;
+  margin: 0;
+}
+
+.filter-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin: 0;
+}
+
+.form-group label {
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-primary, .btn-warning, .btn-danger {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.info-message, .empty-state {
+  text-align: center;
+  padding: 40px;
+  background: #e7f3ff;
+  border-radius: 8px;
+  color: #004085;
+}
+
+.treatments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.treatment-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-active { background: #28a745; color: white; }
+.status-completed { background: #6c757d; color: white; }
+.status-suspended { background: #ffc107; color: #212529; }
+.status-cancelled { background: #dc3545; color: white; }
+
+.card-body {
+  padding: 16px;
+}
+
+.card-body h3 {
+  color: #2c3e50;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+}
+
+.objective {
+  margin: 12px 0;
+  padding: 10px;
+  background: #e7f3ff;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.medications {
+  margin: 16px 0;
+}
+
+.medications h4 {
+  color: #495057;
+  font-size: 14px;
+  margin: 0 0 8px 0;
+}
+
+.medications ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.medications li {
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.notes {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.card-actions button {
+  flex: 1;
+}

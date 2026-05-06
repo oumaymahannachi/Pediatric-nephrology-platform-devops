@@ -1,0 +1,198 @@
+@if (loading) {
+  <div class="text-center py-5"><div class="loading-spinner"></div></div>
+} @else {
+  <div class="row mb-3">
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-blue order-card">
+        <div class="card-body">
+          <h6 class="text-white">Children</h6>
+          <h2 class="text-end text-white">
+            <lucide-icon name="baby" [size]="28" class="float-start"></lucide-icon>
+            <span>{{ treatmentStats.children }}</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-green order-card">
+        <div class="card-body">
+          <h6 class="text-white">Measurements</h6>
+          <h2 class="text-end text-white">
+            <lucide-icon name="ruler" [size]="28" class="float-start"></lucide-icon>
+            <span>{{ treatmentStats.measurements }}</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-yellow order-card">
+        <div class="card-body">
+          <h6 class="text-white">Plans</h6>
+          <h2 class="text-end text-white">
+            <lucide-icon name="clipboard" [size]="28" class="float-start"></lucide-icon>
+            <span>{{ treatmentStats.plans }}</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-red order-card">
+        <div class="card-body">
+          <h6 class="text-white">Appointments</h6>
+          <h2 class="text-end text-white">
+            <lucide-icon name="calendar" [size]="28" class="float-start"></lucide-icon>
+            <span>{{ treatmentStats.appointments }}</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeSubTab === 'children'" (click)="activeSubTab = 'children'" href="javascript:">Children</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeSubTab === 'measurements'" (click)="activeSubTab = 'measurements'" href="javascript:">Measurements</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeSubTab === 'restrictions'" (click)="activeSubTab = 'restrictions'" href="javascript:">Restrictions</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeSubTab === 'plans'" (click)="activeSubTab = 'plans'" href="javascript:">Plans</a>
+    </li>
+  </ul>
+
+  @if (activeSubTab === 'children') {
+    <div class="card">
+      <div class="card-header"><h5>All Children</h5></div>
+      <div class="card-body table-border-style">
+        @if (allChildren.length === 0) {
+          <p class="text-muted text-center py-3">No children registered yet.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table">
+              <thead><tr><th>Full Name</th><th>Date of Birth</th><th>Gender</th><th>Notes</th></tr></thead>
+              <tbody>
+                @for (c of allChildren; track c.id) {
+                  <tr>
+                    <td>{{ c.fullName }}</td>
+                    <td>{{ c.dateOfBirth | date:'MMM d, y' }}</td>
+                    <td>{{ c.gender }}</td>
+                    <td>{{ c.notes || '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeSubTab === 'measurements') {
+    <div class="card">
+      <div class="card-header"><h5>All Growth Measurements</h5></div>
+      <div class="card-body table-border-style">
+        @if (allMeasurements.length === 0) {
+          <p class="text-muted text-center py-3">No measurements recorded yet.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table">
+              <thead><tr><th>Date</th><th>Weight (kg)</th><th>Height (cm)</th><th>BMI</th><th>Head Circ.</th><th>Notes</th></tr></thead>
+              <tbody>
+                @for (m of allMeasurements; track m.id) {
+                  <tr>
+                    <td>{{ m.date | date:'MMM d, y' }}</td>
+                    <td>{{ m.weight }}</td>
+                    <td>{{ m.height }}</td>
+                    <td>{{ m.bmi ? (m.bmi | number:'1.1-1') : '-' }}</td>
+                    <td>{{ m.headCircumference || '-' }}</td>
+                    <td>{{ m.notes || '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeSubTab === 'restrictions') {
+    <div class="card">
+      <div class="card-header"><h5>All Dietary Restrictions</h5></div>
+      <div class="card-body">
+        @if (allRestrictions.length === 0) {
+          <p class="text-muted text-center py-3">No restrictions recorded.</p>
+        } @else {
+          <div class="row">
+            @for (r of allRestrictions; track r.id) {
+              <div class="col-md-4 mb-3">
+                <div class="card h-100 border">
+                  <div class="card-body">
+                    <span class="badge mb-2" [ngClass]="{
+                      'bg-danger': r.severity === 'SEVERE',
+                      'bg-warning': r.severity === 'HIGH',
+                      'bg-info': r.severity === 'MODERATE',
+                      'bg-secondary': r.severity === 'LOW'
+                    }">{{ r.severity }}</span>
+                    <h6>{{ r.allergen }}</h6>
+                    <small class="text-muted">{{ r.type }}</small>
+                    @if (r.description) {
+                      <p class="mt-2 mb-0 small">{{ r.description }}</p>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeSubTab === 'plans') {
+    <div class="card">
+      <div class="card-header"><h5>All Nutritional Plans</h5></div>
+      <div class="card-body">
+        @if (allPlans.length === 0) {
+          <p class="text-muted text-center py-3">No nutritional plans created yet.</p>
+        } @else {
+          @for (plan of allPlans; track plan.id) {
+            <div class="card mb-3 border">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h6 class="mb-1">{{ plan.title }}</h6>
+                  <span class="badge bg-primary">{{ plan.status }}</span>
+                </div>
+                @if (plan.description) {
+                  <p class="text-muted small mb-2">{{ plan.description }}</p>
+                }
+                <div class="small text-muted mb-2">
+                  {{ plan.startDate | date:'MMM d, y' }} &mdash; {{ plan.endDate | date:'MMM d, y' }}
+                </div>
+                @if (plan.meals && plan.meals.length > 0) {
+                  <div class="mt-2">
+                    <strong class="small">Meals ({{ plan.meals.length }}):</strong>
+                    <div class="row mt-1">
+                      @for (meal of plan.meals; track meal.name) {
+                        <div class="col-md-3 mb-2">
+                          <div class="border rounded p-2 small">
+                            <strong>{{ meal.name }}</strong>
+                            @if (meal.time) { <span class="text-muted d-block">{{ meal.time }}</span> }
+                            @if (meal.calories) { <span class="text-muted">{{ meal.calories }} cal</span> }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+}

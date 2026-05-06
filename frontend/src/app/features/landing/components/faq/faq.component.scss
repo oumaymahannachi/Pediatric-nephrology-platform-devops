@@ -1,0 +1,59 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.faq {
+  @include section-padding;
+
+  &__list {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  &__item {
+    border-bottom: 1px solid $gray-200;
+
+    &--open {
+      .faq__question { color: $primary; }
+    }
+  }
+
+  &__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: $space-5 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: 600;
+    color: $gray-800;
+    text-align: left;
+    transition: color $transition-fast;
+
+    &:hover { color: $primary; }
+  }
+
+  &__icon {
+    color: $primary;
+    flex-shrink: 0;
+    margin-left: $space-4;
+    transition: transform $transition-base;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__answer {
+    padding: 0 0 $space-5;
+
+    p {
+      font-size: $font-size-sm;
+      color: $gray-500;
+      line-height: 1.8;
+    }
+  }
+}

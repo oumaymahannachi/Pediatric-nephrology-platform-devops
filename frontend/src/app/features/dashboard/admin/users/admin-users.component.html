@@ -1,0 +1,154 @@
+@if (alertMsg) {
+  <div class="alert" [class.alert-success]="alertType === 'success'" [class.alert-danger]="alertType === 'error'">
+    <lucide-icon [name]="alertType === 'success' ? 'check-circle' : 'alert-circle'" [size]="16"></lucide-icon>
+    {{ alertMsg }}
+    <button class="alert-close" (click)="alertMsg = ''"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+  </div>
+}
+
+<div class="toolbar">
+  <div class="toolbar-search">
+    <lucide-icon name="search" [size]="18" class="search-icon"></lucide-icon>
+    <input type="text" class="form-control" placeholder="Search by name, email or CIN..." [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" />
+  </div>
+  <select class="form-control toolbar-select" [(ngModel)]="roleFilter" (ngModelChange)="applyFilters()">
+    <option value="">All Roles</option>
+    <option value="DOCTOR">Doctor</option>
+    <option value="PARENT">Parent</option>
+    <option value="INFIRMIER">Nurse</option>
+  </select>
+  <span class="toolbar-count">{{ filteredUsers.length }} user(s)</span>
+</div>
+
+@if (loading) {
+  <div class="text-center py-5"><div class="loading-spinner"></div></div>
+} @else if (filteredUsers.length === 0) {
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <lucide-icon name="users" [size]="48" class="text-muted"></lucide-icon>
+      <h5 class="mt-3">No users found</h5>
+      <p class="text-muted">Try adjusting your search or filter criteria.</p>
+    </div>
+  </div>
+} @else {
+  <div class="card">
+    <div class="card-header"><h5>All Users</h5></div>
+    <div class="card-body table-border-style">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>CIN</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of paginatedUsers; track u.id) {
+              <tr>
+                <td>
+                  <div class="table-user-cell">
+                    <div class="avatar-circle avatar-sm">{{ (u.fullName || '?').charAt(0) }}</div>
+                    <strong>{{ u.fullName }}</strong>
+                  </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.cin || '-' }}</td>
+                <td><span class="badge role-badge" [attr.data-role]="getRoleBadgeClass(u.role)">{{ u.role }}</span></td>
+                <td><span class="badge status-badge" [attr.data-status]="getStatusClass(u.status)">{{ u.status }}</span></td>
+                <td>
+                  <div class="action-btns">
+                    <button class="btn btn-sm btn-primary" title="Edit" (click)="openEditUser(u)">
+                      <lucide-icon name="edit" [size]="14"></lucide-icon>
+                    </button>
+                    @if (u.status === 'ACTIVE') {
+                      <button class="btn btn-sm btn-warning" title="Ban" (click)="banUser(u.id!)">
+                        <lucide-icon name="ban" [size]="14"></lucide-icon>
+                      </button>
+                    } @else {
+                      <button class="btn btn-sm btn-success" title="Unban" (click)="unbanUser(u.id!)">
+                        <lucide-icon name="user-check" [size]="14"></lucide-icon>
+                      </button>
+                    }
+                    <button class="btn btn-sm btn-danger" title="Delete" (click)="deleteUser(u.id!)">
+                      <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  @if (totalPages > 1) {
+    <div class="paginator">
+      <button class="paginator-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        <lucide-icon name="chevron-left" [size]="16"></lucide-icon>
+      </button>
+      @for (p of pageNumbers; track p) {
+        <button class="paginator-btn" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+      }
+      <button class="paginator-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        <lucide-icon name="chevron-right" [size]="16"></lucide-icon>
+      </button>
+      <span class="paginator-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    </div>
+  }
+}
+
+@if (showEditModal) {
+  <div class="modal-backdrop" (click)="showEditModal = false">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit User</h5>
+          <button class="btn-close" (click)="showEditModal = false"><lucide-icon name="x" [size]="18"></lucide-icon></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="editForm" (ngSubmit)="saveEditUser()">
+            <div class="mb-3">
+              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <input class="form-control" formControlName="fullName" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <input class="form-control" formControlName="email" type="email" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">CIN <span class="text-danger">*</span></label>
+              <input class="form-control" formControlName="cin" maxlength="8" placeholder="8 digits" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Phone</label>
+              <input class="form-control" formControlName="phone" />
+            </div>
+            @if (editingUser?.role === 'DOCTOR') {
+              <div class="mb-3">
+                <label class="form-label">Specialization</label>
+                <input class="form-control" formControlName="specialization" />
+              </div>
+            }
+            @if (editingUser?.role === 'INFIRMIER') {
+              <div class="mb-3">
+                <label class="form-label">Service Unit</label>
+                <input class="form-control" formControlName="serviceUnit" />
+              </div>
+            }
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="showEditModal = false">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="editForm.invalid || editSaving">
+                @if (editSaving) { <span class="spinner"></span> Saving... } @else { Save Changes }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

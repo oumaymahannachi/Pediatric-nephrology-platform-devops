@@ -1,0 +1,303 @@
+<div class="treatment-list-container">
+  <div class="header">
+    <h2>Traitements de mes enfants</h2>
+  </div>
+
+  
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="childSelect">Sélectionner un enfant</label>
+      <select 
+        id="childSelect" 
+        [(ngModel)]="selectedChildId" 
+        (change)="onChildChange()"
+        class="form-control">
+        <option [ngValue]="null">-- Sélectionnez un enfant --</option>
+        <option *ngFor="let child of children" [ngValue]="child.id">
+          {{ child.fullName }} - {{ child.dateOfBirth | date: 'dd/MM/yyyy' }} ({{ child.gender === 'MALE' ? 'Garçon' : 'Fille' }})
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Chargement...
+  </div>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="!loading && !selectedChildId" class="info-message">
+    <i class="fas fa-info-circle"></i>
+    <p>Sélectionnez un enfant pour voir ses traitements</p>
+  </div>
+
+  <div *ngIf="!loading && selectedChildId && treatments.length === 0" class="empty-state">
+    <i class="fas fa-capsules"></i>
+    <p>Aucun traitement trouvé pour cet enfant</p>
+  </div>
+
+  <div class="treatments-grid" *ngIf="!loading && treatments.length > 0">
+    <div class="treatment-card" *ngFor="let treatment of treatments">
+      <div class="card-header">
+        <span class="treatment-date">
+          <i class="fas fa-calendar-alt"></i>
+          {{ treatment.dateDebut | date: 'dd/MM/yyyy' }} - {{ treatment.dateFin | date: 'dd/MM/yyyy' }}
+        </span>
+        <span class="status-badge" [ngClass]="getStatutClass(treatment.statut)">
+          {{ getStatutLabel(treatment.statut) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="diagnostic-section">
+          <h3><i class="fas fa-stethoscope"></i> Diagnostic</h3>
+          <p>{{ treatment.diagnostic }}</p>
+        </div>
+
+        <div class="objective-section" *ngIf="treatment.objectifTraitement">
+          <h3><i class="fas fa-bullseye"></i> Objectif du traitement</h3>
+          <p>{{ treatment.objectifTraitement }}</p>
+        </div>
+        
+        <div class="medications-section">
+          <h3><i class="fas fa-capsules"></i> Médicaments ({{ treatment.medicaments.length }})</h3>
+          <div class="medication-list">
+            <div class="medication-item" *ngFor="let med of treatment.medicaments">
+              <div class="medication-header">
+                <strong>{{ med.nomCommercial }}</strong>
+                <span class="dci-badge">{{ med.dci }}</span>
+              </div>
+              
+              <div class="medication-details">
+                <div class="detail-row" *ngIf="med.formePharmaceutique || med.dosage">
+                  <i class="fas fa-capsules"></i>
+                  <span>{{ med.formePharmaceutique }} {{ med.dosage }}</span>
+                </div>
+                
+                <div class="detail-row">
+                  <i class="fas fa-clock"></i>
+                  <span>
+                    {{ med.posologie.quantite }} {{ med.posologie.unite }} - 
+                    {{ med.posologie.frequence }}
+                  </span>
+                </div>
+                
+                <div class="detail-row" *ngIf="med.posologie.momentPrise">
+                  <i class="fas fa-utensils"></i>
+                  <span>{{ med.posologie.momentPrise }}</span>
+                </div>
+                
+                <div class="detail-row" *ngIf="med.posologie.dureeTraitementJours">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span>Durée: {{ med.posologie.dureeTraitementJours }} jours</span>
+                </div>
+                
+                <div class="instructions" *ngIf="med.instructionsSpeciales">
+                  <i class="fas fa-info-circle"></i>
+                  <span>{{ med.instructionsSpeciales }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recommendations-section" *ngIf="treatment.recommandations && treatment.recommandations.length > 0">
+          <h3><i class="fas fa-lightbulb"></i> Recommandations</h3>
+          <ul>
+            <li *ngFor="let rec of treatment.recommandations">{{ rec }}</li>
+          </ul>
+        </div>
+
+        <div class="notes-section" *ngIf="treatment.notes">
+          <h4><i class="fas fa-sticky-note"></i> Notes du médecin</h4>
+          <p>{{ treatment.notes }}</p>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn translate-btn" (click)="translateTreatment(treatment)" title="Traduire le traitement">
+          <i class="fas fa-language"></i> Traduire
+        </button>
+        <button class="action-btn pharmacy-btn" (click)="findNearbyPharmacies()" title="Trouver pharmacies proches">
+          <i class="fas fa-map-marker-alt"></i> Pharmacies
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showPharmacyModal" (click)="closePharmacyModal()">
+    <div class="modal-content pharmacy-modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-map-marker-alt"></i> Pharmacies Proches</h3>
+        <button class="close-btn" (click)="closePharmacyModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="loadingPharmacies" class="loading-pharmacies">
+          <i class="fas fa-spinner fa-spin"></i> Recherche des pharmacies...
+        </div>
+
+        <div *ngIf="pharmacyError" class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ pharmacyError }}
+        </div>
+
+        <div *ngIf="!loadingPharmacies && !pharmacyError" class="pharmacy-content">
+          
+          <div class="map-container">
+            <div #mapElement class="google-map"></div>
+          </div>
+
+          
+          <div class="pharmacy-list-sidebar">
+            <h4><i class="fas fa-list"></i> Pharmacies trouvées ({{ pharmacies.length }})</h4>
+            <div class="pharmacy-list">
+              <div class="pharmacy-item" *ngFor="let pharmacy of pharmacies; let i = index" 
+                   (click)="selectPharmacy(i)"
+                   [class.selected]="selectedPharmacyIndex === i">
+                <div class="pharmacy-number">{{ i + 1 }}</div>
+                <div class="pharmacy-info">
+                  <h5>{{ pharmacy.name }}</h5>
+                  <p class="pharmacy-address">
+                    <i class="fas fa-map-marker-alt"></i> {{ pharmacy.address }}
+                  </p>
+                  <p class="pharmacy-distance">
+                    <i class="fas fa-route"></i> {{ pharmacy.distance }} km
+                  </p>
+                </div>
+                <a 
+                  [href]="'https://www.google.com/maps/dir/?api=1&destination=' + pharmacy.latitude + ',' + pharmacy.longitude" 
+                  target="_blank" 
+                  class="btn-directions-small"
+                  (click)="$event.stopPropagation()"
+                  title="Itinéraire">
+                  <i class="fas fa-directions"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showTranslationModal" (click)="closeTranslationModal()">
+    <div class="modal-content translation-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-language"></i> Traduction du traitement</h3>
+        <button class="close-btn" (click)="closeTranslationModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <div class="language-selector">
+          <label for="languageSelect">
+            <i class="fas fa-globe"></i> Sélectionner la langue:
+          </label>
+          <select 
+            id="languageSelect" 
+            [(ngModel)]="selectedLanguage" 
+            (change)="onLanguageChange(treatments[0])"
+            class="language-select">
+            <option *ngFor="let lang of availableLanguages" [value]="lang.code">
+              {{ lang.name }}
+            </option>
+          </select>
+        </div>
+
+        
+        <div *ngIf="translatingTreatment" class="loading-translation">
+          <i class="fas fa-spinner fa-spin"></i> Traduction en cours...
+        </div>
+
+        
+        <div *ngIf="translationError" class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ translationError }}
+        </div>
+
+        
+        <div *ngIf="!translatingTreatment && !translationError && translatedTreatment" class="translated-content">
+          <div class="translation-section">
+            <h4><i class="fas fa-stethoscope"></i> Diagnostic</h4>
+            <p>{{ translatedTreatment.diagnostic }}</p>
+          </div>
+
+          <div class="translation-section" *ngIf="translatedTreatment.objectifTraitement">
+            <h4><i class="fas fa-bullseye"></i> Objectif du traitement</h4>
+            <p>{{ translatedTreatment.objectifTraitement }}</p>
+          </div>
+
+          <div class="translation-section" *ngIf="translatedTreatment.notes">
+            <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+            <p>{{ translatedTreatment.notes }}</p>
+          </div>
+
+          <div class="translation-section">
+            <h4><i class="fas fa-capsules"></i> Médicaments</h4>
+            <div class="translated-medication" *ngFor="let med of translatedTreatment.medicaments">
+              <div class="med-header">
+                <strong>{{ med.nomCommercial }}</strong>
+                <span class="dci-badge">{{ med.dci }}</span>
+              </div>
+              
+              <div class="med-details">
+                <p *ngIf="med.formePharmaceutique">
+                  <i class="fas fa-capsules"></i> 
+                  <strong>Forme:</strong> {{ med.formePharmaceutique }}
+                </p>
+                <p *ngIf="med.dosage">
+                  <i class="fas fa-prescription-bottle"></i> 
+                  <strong>Dosage:</strong> {{ med.dosage }}
+                </p>
+                <p *ngIf="med.posologie?.frequence">
+                  <i class="fas fa-clock"></i> 
+                  <strong>Fréquence:</strong> {{ med.posologie.frequence }}
+                </p>
+                <p *ngIf="med.posologie?.momentPrise">
+                  <i class="fas fa-utensils"></i> 
+                  <strong>Moment:</strong> {{ med.posologie.momentPrise }}
+                </p>
+                <p *ngIf="med.instructionsSpeciales">
+                  <i class="fas fa-info-circle"></i> 
+                  <strong>Instructions:</strong> {{ med.instructionsSpeciales }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="translation-section" *ngIf="translatedTreatment.recommandations && translatedTreatment.recommandations.length > 0">
+            <h4><i class="fas fa-lightbulb"></i> Recommandations</h4>
+            <ul>
+              <li *ngFor="let rec of translatedTreatment.recommandations">{{ rec }}</li>
+            </ul>
+          </div>
+
+          <div class="translation-note">
+            <i class="fas fa-info-circle"></i>
+            <small>Traduction fournie par LibreTranslate (service gratuit). Pour une précision médicale, veuillez consulter le traitement original.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <app-chat-modal
+    *ngIf="showChatModal && selectedTreatmentForChat"
+    [show]="showChatModal"
+    [doctorId]="selectedTreatmentForChat.medecinId"
+    [parentId]="currentUserId"
+    [childId]="selectedTreatmentForChat.patientId"
+    [currentUserId]="currentUserId"
+    [currentUserType]="currentUserType"
+    [subject]="'Question about treatment from ' + (selectedTreatmentForChat.dateDebut | date:'short')"
+    [contextType]="ContextType.TREATMENT"
+    [contextId]="selectedTreatmentForChat.id"
+    (close)="closeChat()">
+  </app-chat-modal>
+</div>

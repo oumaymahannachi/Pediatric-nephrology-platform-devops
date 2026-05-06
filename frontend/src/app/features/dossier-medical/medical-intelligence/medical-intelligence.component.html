@@ -1,0 +1,211 @@
+<div class="mi-container">
+  <div class="mi-tabs">
+    <button class="mi-tab" [class.active]="activeTab === 'bio'" (click)="activeTab = 'bio'">
+      <i class="fas fa-flask"></i> Biological Analysis
+    </button>
+    <button class="mi-tab" [class.active]="activeTab === 'evolution'" (click)="activeTab = 'evolution'">
+      <i class="fas fa-chart-line"></i> Pathology Evolution
+    </button>
+    <button class="mi-tab" [class.active]="activeTab === 'reminders'" (click)="activeTab = 'reminders'">
+      <i class="fas fa-bell"></i> Reminders
+      <span class="badge-count" *ngIf="getPendingReminders().length > 0">{{ getPendingReminders().length }}</span>
+    </button>
+  </div>
+
+  
+  <div *ngIf="activeTab === 'bio'" class="mi-panel">
+    <div class="mi-panel-header">
+      <h3><i class="fas fa-flask"></i> Automatic Biological Interpretation</h3>
+      <div class="mi-params">
+        <label>Age (months):
+          <input type="number" [(ngModel)]="ageMonths" min="1" max="216" class="mi-input-sm">
+        </label>
+        <label>Weight (kg):
+          <input type="number" [(ngModel)]="weightKg" min="1" max="100" step="0.5" class="mi-input-sm">
+        </label>
+        <button class="mi-btn-analyze" (click)="loadBioInterpretation()">
+          <i class="fas fa-search"></i> Analyze
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="bioLoading" class="mi-loading">
+      <i class="fas fa-spinner fa-spin"></i> Analyzing...
+    </div>
+
+    <div *ngIf="!bioLoading && bioInterpretation">
+      
+      <div *ngIf="bioInterpretation.criticalAlerts.length > 0" class="mi-alerts">
+        <div *ngFor="let alert of bioInterpretation.criticalAlerts" class="mi-alert-item">
+          <i class="fas fa-exclamation-triangle"></i> {{ alert }}
+        </div>
+      </div>
+
+      
+      <div *ngIf="bioInterpretation.acuteKidneyInjuryDetected" class="mi-aki-badge">
+        <i class="fas fa-exclamation-circle"></i>
+        Acute Kidney Injury Detected - {{ bioInterpretation.akiSeverity }}
+      </div>
+
+      
+      <div *ngIf="bioInterpretation.creatinineUrineRatio" class="mi-ratio">
+        <strong>Urea/Creatinine Ratio:</strong> {{ bioInterpretation.creatinineUrineRatio | number:'1.1-1' }}
+        <span class="mi-ratio-hint">(Normal: 10-20)</span>
+      </div>
+
+      
+      <div class="mi-table-wrap" *ngIf="bioInterpretation.analyses.length > 0">
+        <table class="mi-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Value</th>
+              <th>Normal Range</th>
+              <th>Status</th>
+              <th>Interpretation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of bioInterpretation.analyses" [class]="getStatusClass(a.status)">
+              <td><strong>{{ a.parameterName }}</strong><br><small>{{ a.ageGroup }}</small></td>
+              <td>{{ a.value }} {{ a.unit }}</td>
+              <td>{{ a.normalMin }} - {{ a.normalMax }} {{ a.unit }}</td>
+              <td>
+                <span class="mi-status-badge" [class]="getStatusClass(a.status)">{{ a.status }}</span>
+              </td>
+              <td>{{ a.interpretation }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      
+      <div *ngIf="bioInterpretation.recommendations.length > 0" class="mi-recommendations">
+        <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+        <ul>
+          <li *ngFor="let rec of bioInterpretation.recommendations">{{ rec }}</li>
+        </ul>
+      </div>
+
+      <div *ngIf="bioInterpretation.analyses.length === 0" class="mi-empty">
+        <i class="fas fa-flask"></i>
+        <p>No biological results available for this patient.</p>
+      </div>
+    </div>
+  </div>
+
+  
+  <div *ngIf="activeTab === 'evolution'" class="mi-panel">
+    <div class="mi-panel-header">
+      <h3><i class="fas fa-chart-line"></i> Pathology Evolution</h3>
+    </div>
+
+    <div *ngIf="evolutionLoading" class="mi-loading">
+      <i class="fas fa-spinner fa-spin"></i> Loading evolution...
+    </div>
+
+    <div *ngIf="!evolutionLoading && evolution">
+      
+      <div class="mi-progression-card" [class]="getProgressionClass(evolution.overallProgression)">
+        <div class="mi-progression-icon">
+          <span>{{ getTrendIcon(evolution.overallProgression) }}</span>
+        </div>
+        <div class="mi-progression-info">
+          <strong>Overall Progression: {{ evolution.overallProgression }}</strong>
+          <p>{{ evolution.clinicalSummary }}</p>
+        </div>
+      </div>
+
+      
+      <div class="mi-trends-grid">
+        <div class="mi-trend-card">
+          <div class="mi-trend-label">GFR Trend</div>
+          <div class="mi-trend-value" [class]="getTrendClass(evolution.gfrTrend)">
+            {{ getTrendIcon(evolution.gfrTrend) }} {{ evolution.gfrTrend }}
+          </div>
+        </div>
+        <div class="mi-trend-card">
+          <div class="mi-trend-label">Creatinine Trend</div>
+          <div class="mi-trend-value" [class]="getTrendClass(evolution.creatinineTrend)">
+            {{ getTrendIcon(evolution.creatinineTrend) }} {{ evolution.creatinineTrend }}
+          </div>
+        </div>
+        <div class="mi-trend-card">
+          <div class="mi-trend-label">Urea Trend</div>
+          <div class="mi-trend-value" [class]="getTrendClass(evolution.ureaTrend)">
+            {{ getTrendIcon(evolution.ureaTrend) }} {{ evolution.ureaTrend }}
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mi-timeline" *ngIf="evolution.consultationHistory.length > 0">
+        <h4><i class="fas fa-history"></i> Consultation History</h4>
+        <div class="mi-timeline-item" *ngFor="let snap of evolution.consultationHistory">
+          <div class="mi-timeline-dot"></div>
+          <div class="mi-timeline-content">
+            <div class="mi-timeline-date">{{ snap.date | date:'dd/MM/yyyy' }}</div>
+            <div class="mi-timeline-data">
+              <span *ngIf="snap.gfrValue" class="mi-data-chip">GFR: {{ snap.gfrValue | number:'1.1-1' }}</span>
+              <span *ngIf="snap.creatinineValue" class="mi-data-chip">Creat: {{ snap.creatinineValue }}</span>
+              <span *ngIf="snap.ckdStage" class="mi-data-chip ckd">{{ snap.ckdStage }}</span>
+            </div>
+            <div *ngIf="snap.diagnostic" class="mi-timeline-diag">{{ snap.diagnostic }}</div>
+            <div *ngIf="snap.symptoms && snap.symptoms.length > 0" class="mi-symptoms">
+              <span *ngFor="let s of snap.symptoms" class="mi-symptom-tag">{{ s }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div *ngIf="evolution.recommendations.length > 0" class="mi-recommendations">
+        <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+        <ul>
+          <li *ngFor="let rec of evolution.recommendations">{{ rec }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  
+  <div *ngIf="activeTab === 'reminders'" class="mi-panel">
+    <div class="mi-panel-header">
+      <h3><i class="fas fa-bell"></i> Smart Reminders</h3>
+      <button class="mi-btn-generate" (click)="generateReminders()" [disabled]="remindersLoading">
+        <i class="fas fa-magic"></i> Generate Reminders
+      </button>
+    </div>
+
+    <div *ngIf="remindersLoading" class="mi-loading">
+      <i class="fas fa-spinner fa-spin"></i> Loading reminders...
+    </div>
+
+    <div *ngIf="!remindersLoading && reminders.length === 0" class="mi-empty">
+      <i class="fas fa-bell-slash"></i>
+      <p>No reminders. Click "Generate Reminders" to create intelligent reminders.</p>
+    </div>
+
+    <div class="mi-reminders-list" *ngIf="!remindersLoading && reminders.length > 0">
+      <div *ngFor="let r of reminders" class="mi-reminder-card" [class.acknowledged]="r.status === 'ACKNOWLEDGED'">
+        <div class="mi-reminder-icon">{{ getReminderTypeIcon(r.type) }}</div>
+        <div class="mi-reminder-body">
+          <div class="mi-reminder-title">{{ r.title }}</div>
+          <div class="mi-reminder-msg">{{ r.message }}</div>
+          <div class="mi-reminder-meta">
+            <span *ngIf="r.dueDate"><i class="fas fa-clock"></i> Due: {{ r.dueDate | date:'dd/MM/yyyy' }}</span>
+            <span *ngIf="r.chronic" class="mi-chronic-badge">Chronic Patient</span>
+          </div>
+        </div>
+        <div class="mi-reminder-actions">
+          <span class="mi-reminder-status" [class]="r.status === 'PENDING' ? 'status-pending' : 'status-done'">
+            {{ r.status }}
+          </span>
+          <button *ngIf="r.status === 'PENDING'" class="mi-btn-ack" (click)="acknowledgeReminder(r.id)">
+            <i class="fas fa-check"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

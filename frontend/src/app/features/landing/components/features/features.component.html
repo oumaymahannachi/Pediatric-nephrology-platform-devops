@@ -1,0 +1,18 @@
+<section class="features" id="features">
+  <div class="container text-center">
+    <span class="section-badge">Features</span>
+    <h2 class="section-title">Everything you need for pediatric care</h2>
+    <p class="section-subtitle">
+      A comprehensive platform designed for both doctors and parents to provide the best healthcare experience.
+    </p>
+    <div class="features__grid">
+      @for (feature of features; track feature.title) {
+        <div class="features__card animate-fade-in-up">
+          <div class="features__icon"><lucide-icon [name]="feature.icon" [size]="32"></lucide-icon></div>
+          <h3 class="features__card-title">{{ feature.title }}</h3>
+          <p class="features__card-desc">{{ feature.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

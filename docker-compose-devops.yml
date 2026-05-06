@@ -1,0 +1,92 @@
+services:
+  # --- JENKINS ---
+  jenkins:
+    build: ./devops/jenkins
+    container_name: pedialink-jenkins
+    user: root # Nécessaire pour accéder à /var/run/docker.sock
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false # Désactive l'assistant d'install pour la portabilité
+    volumes:
+      - ./devops/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.kube:/var/jenkins_home/.kube # Pour que kubectl puisse accéder au cluster
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+  # --- SONARQUBE ---
+  sonarqube:
+    image: sonarqube:community
+    container_name: pedialink-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+    volumes:
+      - ./devops/sonarqube_data:/opt/sonarqube/data
+      - ./devops/sonarqube_extensions:/opt/sonarqube/extensions
+      - ./devops/sonarqube_logs:/opt/sonarqube/logs
+    depends_on:
+      - sonar-db
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+  sonar-db:
+    image: postgres:15
+    container_name: pedialink-sonar-db
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - ./devops/sonar_db_data:/var/lib/postgresql/data
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+  # --- PROMETHEUS & GRAFANA ---
+  prometheus:
+    image: prom/prometheus
+    container_name: pedialink-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./devops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./devops/prometheus_data:/prometheus
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: pedialink-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./devops/grafana:/var/lib/grafana
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+  # --- LOCAL REGISTRY ---
+  registry:
+    image: registry:2
+    container_name: pedialink-registry
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./devops/registry_data:/var/lib/registry
+    networks:
+      - pedialink-net
+    restart: unless-stopped
+
+networks:
+  pedialink-net:
+    name: pedialink-net
+    driver: bridge

@@ -1,0 +1,34 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: messaging-service
+  
+  data:
+    mongodb:
+      uri: mongodb+srv://PediaLink:PediaLink@pedialink.0d8a5qd.mongodb.net/pedialink
+      database: pedialink
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+file:
+  upload-dir: uploads
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+
+logging:
+  level:
+    tn.pedialink.messaging: DEBUG
+    org.springframework.data.mongodb: DEBUG

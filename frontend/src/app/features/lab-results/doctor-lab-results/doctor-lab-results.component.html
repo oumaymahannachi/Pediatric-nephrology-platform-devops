@@ -1,0 +1,467 @@
+<div class="lab-results-container">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()"><span>←</span> Back</button>
+    <h1>Lab Results Management</h1>
+    <button class="add-btn" (click)="openAddModal()"><span>+</span> Add Lab Result</button>
+  </div>
+
+  <div class="patient-selection">
+    <label for="childSelect">Select Patient:</label>
+    <select id="childSelect" [(ngModel)]="selectedChildId" (change)="onChildChange()" [disabled]="loadingChildren">
+      <option [ngValue]="null">-- Select a patient --</option>
+      <option *ngFor="let child of children" [ngValue]="child.id">
+        {{ child.fullName }} ({{ child.dateOfBirth | date:'dd/MM/yyyy' }})
+      </option>
+    </select>
+  </div>
+
+  <div class="filters-section" *ngIf="selectedChildId">
+    <div class="search-box">
+      <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Search by laboratory, notes, alerts...">
+      <button *ngIf="searchTerm" (click)="clearSearch()" class="clear-btn">×</button>
+    </div>
+
+    <div class="filters">
+      <select [(ngModel)]="filterType" (change)="onFilterChange()">
+        <option value="ALL">All Types</option>
+        <option [ngValue]="TestType.BLOOD">Blood Tests</option>
+        <option [ngValue]="TestType.URINE">Urine Tests</option>
+        <option [ngValue]="TestType.BIOPSY">Biopsy</option>
+        <option [ngValue]="TestType.OTHER">Other</option>
+      </select>
+
+      <select [(ngModel)]="filterAbnormal" (change)="onFilterChange()">
+        <option value="ALL">All Results</option>
+        <option value="ABNORMAL">Abnormal Only</option>
+        <option value="NORMAL">Normal Only</option>
+      </select>
+
+      <select [(ngModel)]="sortBy" (change)="applyFilters()">
+        <option value="date">Sort by Date</option>
+        <option value="eGFR">Sort by eGFR</option>
+        <option value="status">Sort by Status</option>
+      </select>
+
+      <button (click)="toggleSortOrder()" class="sort-order-btn">
+        {{ sortOrder === 'asc' ? '↑' : '↓' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading lab results...</p>
+  </div>
+
+  
+  <div *ngIf="showChart && !loading" class="chart-container">
+    <apx-chart
+      [series]="eGFRChartOptions.series!"
+      [chart]="eGFRChartOptions.chart!"
+      [stroke]="eGFRChartOptions.stroke!"
+      [colors]="eGFRChartOptions.colors!"
+      [xaxis]="eGFRChartOptions.xaxis!"
+      [yaxis]="eGFRChartOptions.yaxis!"
+      [annotations]="eGFRChartOptions.annotations!"
+      [markers]="eGFRChartOptions.markers!"
+      [tooltip]="eGFRChartOptions.tooltip!"
+      [title]="eGFRChartOptions.title!">
+    </apx-chart>
+  </div>
+
+  <div *ngIf="!loading && selectedChildId && filteredResults.length > 0" class="results-grid">
+    <div *ngFor="let result of filteredResults" class="result-card" [class.abnormal]="result.isAbnormal">
+      <div class="card-header">
+        <div class="test-info">
+          <span class="test-type">{{ result.testType }}</span>
+          <span class="test-date">{{ result.testDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass(result.status)">
+          {{ getStatusLabel(result.status) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="key-values">
+          <div class="value-item" *ngIf="result.eGFR != null">
+            <span class="label">eGFR:</span>
+            <span class="value" [class.critical]="result.eGFR < 30">{{ result.eGFR }} mL/min/1.73m²</span>
+          </div>
+
+          <div class="value-item" *ngIf="result.ckdStage">
+            <span class="label">CKD Stage:</span>
+            <span class="value" [ngClass]="getCKDStageClass(result.ckdStage)">
+              {{ getCKDStageLabel(result.ckdStage) }}
+            </span>
+          </div>
+
+          <div class="value-item" *ngIf="result.creatinine != null">
+            <span class="label">Creatinine:</span>
+            <span class="value">{{ result.creatinine }} mg/dL</span>
+          </div>
+
+          <div class="value-item" *ngIf="result.potassium != null">
+            <span class="label">Potassium:</span>
+            <span class="value" [class.critical]="result.potassium > 6.0">{{ result.potassium }} mmol/L</span>
+          </div>
+        </div>
+
+        <div class="alerts" *ngIf="result.alerts && result.alerts.length > 0">
+          <div class="alert-item" *ngFor="let alert of result.alerts">
+            <span class="alert-icon">⚠️</span>
+            <span>{{ alert }}</span>
+          </div>
+        </div>
+
+        <div class="laboratory" *ngIf="result.laboratoryName">
+          <span class="lab-icon">🏥</span>
+          <span>{{ result.laboratoryName }}</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button (click)="viewDetails(result)" class="btn-view">View Details</button>
+        <button (click)="openEditModal(result)" class="btn-edit">Edit</button>
+
+        
+        <button (click)="exportDoctorPDF(result)" class="btn-pdf-doctor">PDF Doctor</button>
+        <button (click)="exportParentPDF(result)" class="btn-pdf-parent">PDF Parent</button>
+
+        <button (click)="validateResult(result)" class="btn-validate" *ngIf="result.status === ResultStatus.PENDING">
+          Validate
+        </button>
+        <button (click)="deleteLabResult(result)" class="btn-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && selectedChildId && filteredResults.length === 0" class="no-results">
+    <p>No lab results found</p>
+  </div>
+
+  <div *ngIf="!selectedChildId && !loading" class="no-selection">
+    <p>Please select a patient to view lab results</p>
+  </div>
+</div>
+
+
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Lab Result Details</h2>
+      <button class="close-btn" (click)="closeDetailsModal()">×</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedResult">
+      <div class="details-section">
+        <h3>Test Information</h3>
+        <div class="detail-row"><span class="label">Test Date:</span><span>{{ selectedResult.testDate | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        <div class="detail-row"><span class="label">Test Type:</span><span>{{ selectedResult.testType }}</span></div>
+        <div class="detail-row" *ngIf="selectedResult.laboratoryName"><span class="label">Laboratory:</span><span>{{ selectedResult.laboratoryName }}</span></div>
+        <div class="detail-row"><span class="label">Status:</span>
+          <span [ngClass]="getStatusClass(selectedResult.status)">{{ getStatusLabel(selectedResult.status) }}</span>
+        </div>
+      </div>
+
+      
+      <div class="details-section">
+        <h3>Export</h3>
+        <div class="card-actions">
+          <button class="btn-pdf-doctor" (click)="exportDoctorPDF(selectedResult)">PDF Doctor</button>
+          <button class="btn-pdf-parent" (click)="exportParentPDF(selectedResult)">PDF Parent</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Edit Lab Result</h2>
+      <button class="close-btn" (click)="closeEditModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="updateLabResult()">
+        
+        
+        <div class="form-section">
+          <h3>📋 Test Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Test Date *</label>
+              <input type="datetime-local" [(ngModel)]="formData.testDate" name="testDate" required>
+            </div>
+            <div class="form-group">
+              <label>Test Type *</label>
+              <select [(ngModel)]="formData.testType" name="testType" required>
+                <option [ngValue]="TestType.BLOOD">Blood Test</option>
+                <option [ngValue]="TestType.URINE">Urine Test</option>
+                <option [ngValue]="TestType.BIOPSY">Biopsy</option>
+                <option [ngValue]="TestType.OTHER">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Laboratory Name</label>
+            <input type="text" [(ngModel)]="formData.laboratoryName" name="laboratoryName" placeholder="Lab name">
+          </div>
+        </div>
+
+        
+        <div class="form-section" *ngIf="formData.testType === TestType.BLOOD">
+          <h3>🩸 Blood Test Values</h3>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Creatinine (mg/dL)</label>
+              <input type="number" step="0.01" [(ngModel)]="formData.creatinine" name="creatinine">
+            </div>
+            <div class="form-group">
+              <label>Urea (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urea" name="urea">
+            </div>
+            <div class="form-group">
+              <label>Sodium (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.sodium" name="sodium">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Potassium (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.potassium" name="potassium">
+            </div>
+            <div class="form-group">
+              <label>Calcium (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.calcium" name="calcium">
+            </div>
+            <div class="form-group">
+              <label>Phosphorus (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.phosphorus" name="phosphorus">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Hemoglobin (g/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.hemoglobin" name="hemoglobin">
+            </div>
+            <div class="form-group">
+              <label>Albumin (g/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.albumin" name="albumin">
+            </div>
+            <div class="form-group">
+              <label>Bicarbonate (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.bicarbonate" name="bicarbonate">
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-section" *ngIf="formData.testType === TestType.URINE">
+          <h3>💧 Urine Test Values</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Protein (g/24h)</label>
+              <input type="number" step="0.01" [(ngModel)]="formData.urineProtein" name="urineProtein">
+            </div>
+            <div class="form-group">
+              <label>Creatinine (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urineCreatinine" name="urineCreatinine">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Albumin (mg/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urineAlbumin" name="urineAlbumin">
+            </div>
+            <div class="form-group">
+              <label>Aspect</label>
+              <input type="text" [(ngModel)]="formData.urineAspect" name="urineAspect" placeholder="Clear, Cloudy, etc.">
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-section">
+          <h3>📝 Doctor's Notes</h3>
+          <div class="form-group">
+            <textarea [(ngModel)]="formData.doctorNotes" name="doctorNotes" rows="3" 
+                      placeholder="Additional notes or observations..."></textarea>
+          </div>
+        </div>
+
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            {{ loading ? 'Updating...' : 'Update Lab Result' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add New Lab Result</h2>
+      <button class="close-btn" (click)="closeAddModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="submitLabResult()">
+        
+        
+        <div class="form-section">
+          <h3>📋 Test Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Test Date *</label>
+              <input type="datetime-local" [(ngModel)]="formData.testDate" name="testDate" required>
+            </div>
+            <div class="form-group">
+              <label>Test Type *</label>
+              <select [(ngModel)]="formData.testType" name="testType" required>
+                <option [ngValue]="TestType.BLOOD">Blood Test</option>
+                <option [ngValue]="TestType.URINE">Urine Test</option>
+                <option [ngValue]="TestType.OTHER">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Laboratory Name</label>
+            <input type="text" [(ngModel)]="formData.laboratoryName" name="laboratoryName" placeholder="Lab name">
+          </div>
+        </div>
+
+        
+        <div class="form-section" style="background: #e0f2fe; border-left: 4px solid #0284c7;">
+          <h3>📧 Parent Notification</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Parent Email</label>
+              <input type="email" [(ngModel)]="formData.parentEmail" name="parentEmail" 
+                     placeholder="parent@example.com">
+              <small style="color: #64748b;">Email notification will be sent if provided</small>
+            </div>
+            <div class="form-group">
+              <label>Parent Phone (Optional)</label>
+              <input type="tel" [(ngModel)]="formData.parentPhone" name="parentPhone" 
+                     placeholder="+216 XX XXX XXX">
+              <small style="color: #64748b;">SMS notification (if configured)</small>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" [(ngModel)]="formData.sendEmailNotification" name="sendEmail" 
+                       style="width: auto;">
+                Send Email Notification
+              </label>
+            </div>
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" [(ngModel)]="formData.sendSmsNotification" name="sendSms" 
+                       style="width: auto;">
+                Send SMS Notification
+              </label>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-section" *ngIf="formData.testType === TestType.BLOOD">
+          <h3>🩸 Blood Test Values</h3>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Creatinine (mg/dL)</label>
+              <input type="number" step="0.01" [(ngModel)]="formData.creatinine" name="creatinine">
+            </div>
+            <div class="form-group">
+              <label>Urea (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urea" name="urea">
+            </div>
+            <div class="form-group">
+              <label>Sodium (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.sodium" name="sodium">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Potassium (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.potassium" name="potassium">
+            </div>
+            <div class="form-group">
+              <label>Calcium (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.calcium" name="calcium">
+            </div>
+            <div class="form-group">
+              <label>Phosphorus (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.phosphorus" name="phosphorus">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Hemoglobin (g/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.hemoglobin" name="hemoglobin">
+            </div>
+            <div class="form-group">
+              <label>Albumin (g/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.albumin" name="albumin">
+            </div>
+            <div class="form-group">
+              <label>Bicarbonate (mmol/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.bicarbonate" name="bicarbonate">
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-section" *ngIf="formData.testType === TestType.URINE">
+          <h3>💧 Urine Test Values</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Protein (g/24h)</label>
+              <input type="number" step="0.01" [(ngModel)]="formData.urineProtein" name="urineProtein">
+            </div>
+            <div class="form-group">
+              <label>Creatinine (mg/dL)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urineCreatinine" name="urineCreatinine">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Albumin (mg/L)</label>
+              <input type="number" step="0.1" [(ngModel)]="formData.urineAlbumin" name="urineAlbumin">
+            </div>
+            <div class="form-group">
+              <label>Aspect</label>
+              <input type="text" [(ngModel)]="formData.urineAspect" name="urineAspect" placeholder="Clear, Cloudy, etc.">
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-section">
+          <h3>📝 Doctor's Notes</h3>
+          <div class="form-group">
+            <textarea [(ngModel)]="formData.doctorNotes" name="doctorNotes" rows="3" 
+                      placeholder="Additional notes or observations..."></textarea>
+          </div>
+        </div>
+
+        
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="loading">
+            {{ loading ? 'Saving...' : 'Save Lab Result' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

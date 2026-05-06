@@ -1,0 +1,31 @@
+<nav class="navbar" [class.scrolled]="scrolled">
+  <div class="navbar__inner container">
+    <a routerLink="/" class="navbar__brand" (click)="closeMobile()">
+      <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="navbar__logo" />
+    </a>
+    <ul class="navbar__links">
+      <li><a href="#features" class="navbar__link">Features</a></li>
+      <li><a href="#how-it-works" class="navbar__link">How it works</a></li>
+      <li><a href="#pricing" class="navbar__link">Pricing</a></li>
+      <li><a href="#faq" class="navbar__link">FAQ</a></li>
+    </ul>
+    <div class="navbar__actions">
+      <a routerLink="/auth/login" class="btn-ghost">Log in</a>
+      <a routerLink="/auth/signup" class="btn-primary">Sign up</a>
+    </div>
+    <button class="navbar__hamburger" (click)="toggleMobile()" [attr.aria-label]="'Toggle menu'">
+      <span [class.open]="mobileOpen"></span>
+      <span [class.open]="mobileOpen"></span>
+      <span [class.open]="mobileOpen"></span>
+    </button>
+  </div>
+  <div class="navbar__mobile" [class.active]="mobileOpen">
+    <a href="#features" class="navbar__mobile-link" (click)="closeMobile()">Features</a>
+    <a href="#how-it-works" class="navbar__mobile-link" (click)="closeMobile()">How it works</a>
+    <a href="#pricing" class="navbar__mobile-link" (click)="closeMobile()">Pricing</a>
+    <a href="#faq" class="navbar__mobile-link" (click)="closeMobile()">FAQ</a>
+    <hr />
+    <a routerLink="/auth/login" class="navbar__mobile-link" (click)="closeMobile()">Log in</a>
+    <a routerLink="/auth/signup" class="btn-primary navbar__mobile-cta" (click)="closeMobile()">Sign up</a>
+  </div>
+</nav>

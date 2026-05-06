@@ -1,0 +1,25 @@
+<div class="modal-overlay" *ngIf="show" (click)="onBackdropClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeModal()">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div *ngIf="loading" class="loading-state">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading chat...</p>
+    </div>
+
+    <div *ngIf="error" class="error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="loadOrCreateConversation()">Retry</button>
+    </div>
+
+    <app-chat-window
+      *ngIf="!loading && !error && conversation"
+      [conversation]="conversation"
+      [currentUserId]="currentUserId"
+      [currentUserType]="currentUserType">
+    </app-chat-window>
+  </div>
+</div>

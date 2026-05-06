@@ -1,0 +1,132 @@
+<div class="progress-container">
+  <div class="header">
+    <h2>📈 Suivi de Progression</h2>
+    <button class="btn btn-primary" (click)="showForm = !showForm">
+      {{ showForm ? 'Annuler' : '+ Enregistrer un suivi' }}
+    </button>
+  </div>
+
+  
+  <div class="analysis-card" *ngIf="analysis">
+    <h3>Analyse ({{ analysis.periode }})</h3>
+    <div class="analysis-grid">
+      <div class="analysis-item">
+        <h4>Symptômes</h4>
+        <div *ngFor="let symptom of analysis.symptomesEvolution | keyvalue">
+          <span>{{ symptom.key }}: </span>
+          <strong>{{ symptom.value }}/10</strong>
+        </div>
+      </div>
+      
+      <div class="analysis-item" *ngIf="analysis.poids">
+        <h4>Poids</h4>
+        <p>Actuel: <strong>{{ analysis.poids.poidsActuel }} kg</strong></p>
+        <p>Initial: {{ analysis.poids.poidsInitial }} kg</p>
+        <p>Variation: 
+          <strong [class.positive]="analysis.poids.variation > 0" 
+                  [class.negative]="analysis.poids.variation < 0">
+            {{ analysis.poids.variation > 0 ? '+' : '' }}{{ analysis.poids.variation }} kg
+          </strong>
+        </p>
+      </div>
+      
+      <div class="analysis-item" *ngIf="analysis.bienEtre">
+        <h4>Bien-être</h4>
+        <p>Énergie: <strong>{{ analysis.bienEtre.niveauEnergieMoyen }}/10</strong></p>
+        <p>Sommeil: <strong>{{ analysis.bienEtre.qualiteSommeilMoyenne }}/10</strong></p>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="form-card" *ngIf="showForm">
+    <h3>Enregistrer un suivi</h3>
+    <form (ngSubmit)="submitLog()">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" [(ngModel)]="formData.date" name="date" required>
+      </div>
+
+      <div class="form-group">
+        <label>Symptômes (1-10)</label>
+        <div class="symptomes-grid">
+          <div *ngFor="let symptom of symptomesList" class="symptom-item">
+            <label>{{ symptom.nom }}</label>
+            <input type="range" min="0" max="10" 
+                   [(ngModel)]="formData.symptomes[symptom.key]" 
+                   [name]="symptom.key">
+            <span>{{ formData.symptomes[symptom.key] || 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Poids (kg)</label>
+          <input type="number" step="0.1" [(ngModel)]="formData.poids" name="poids">
+        </div>
+        <div class="form-group">
+          <label>Taille (cm)</label>
+          <input type="number" step="0.1" [(ngModel)]="formData.taille" name="taille">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Humeur</label>
+        <select [(ngModel)]="formData.humeur" name="humeur">
+          <option value="">Sélectionner</option>
+          <option value="EXCELLENT">😊 Excellent</option>
+          <option value="BON">🙂 Bon</option>
+          <option value="MOYEN">😐 Moyen</option>
+          <option value="MAUVAIS">😞 Mauvais</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Niveau d'énergie (1-10)</label>
+          <input type="range" min="1" max="10" [(ngModel)]="formData.niveauEnergie" name="niveauEnergie">
+          <span>{{ formData.niveauEnergie }}</span>
+        </div>
+        <div class="form-group">
+          <label>Qualité du sommeil (1-10)</label>
+          <input type="range" min="1" max="10" [(ngModel)]="formData.qualiteSommeil" name="qualiteSommeil">
+          <span>{{ formData.qualiteSommeil }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="formData.notes" name="notes" rows="3"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn btn-secondary" (click)="showForm = false">Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  
+  <div class="logs-card">
+    <h3>Historique</h3>
+    <div class="logs-list">
+      <div class="log-item" *ngFor="let log of logs">
+        <div class="log-header">
+          <span class="log-date">{{ log.date | date:'dd/MM/yyyy' }}</span>
+          <span class="badge badge-info">{{ log.humeur }}</span>
+        </div>
+        <div class="log-body">
+          <div *ngIf="log.symptomes">
+            <strong>Symptômes:</strong>
+            <span *ngFor="let s of log.symptomes | keyvalue">
+              {{ s.key }}: {{ s.value }}/10
+            </span>
+          </div>
+          <p *ngIf="log.poids">Poids: {{ log.poids }} kg</p>
+          <p *ngIf="log.notes">{{ log.notes }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

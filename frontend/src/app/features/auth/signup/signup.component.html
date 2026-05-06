@@ -1,0 +1,134 @@
+<div class="auth-page">
+  <div class="auth-page__card animate-fade-in-up">
+    <div class="auth-page__header">
+      <a routerLink="/" class="auth-page__brand">
+        <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="auth-page__logo" />
+      </a>
+      <h1>Create your account</h1>
+      <p>Join PediaLink today</p>
+    </div>
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+    @if (step === 'role') {
+      <div class="role-selector">
+        <button class="role-card" (click)="selectRole('DOCTOR')">
+          <span class="role-card__icon"><lucide-icon name="stethoscope" [size]="32"></lucide-icon></span>
+          <strong>I am a Doctor</strong>
+          <p>Manage patients, appointments, and medical records</p>
+        </button>
+        <button class="role-card" (click)="selectRole('PARENT')">
+          <span class="role-card__icon"><lucide-icon name="baby" [size]="32"></lucide-icon></span>
+          <strong>I am a Parent</strong>
+          <p>Track your child's health and book appointments</p>
+        </button>
+        <button class="role-card" (click)="selectRole('INFIRMIER')">
+          <span class="role-card__icon"><lucide-icon name="heart-pulse" [size]="32"></lucide-icon></span>
+          <strong>I am a Nurse</strong>
+          <p>Assist doctors and manage patient care</p>
+        </button>
+      </div>
+    }
+    @if (step === 'form') {
+      <button class="btn-ghost back-btn" (click)="goBack()"><lucide-icon name="arrow-left" [size]="14"></lucide-icon> Choose role</button>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="form-group">
+          <label for="fullName"><lucide-icon name="user" [size]="14"></lucide-icon> Full Name</label>
+          <input id="fullName" type="text" formControlName="fullName" placeholder="John Doe" />
+          @if (form.get('fullName')?.touched && form.get('fullName')?.hasError('required')) {
+            <div class="error-msg">Full name is required</div>
+          }
+          @if (form.get('fullName')?.touched && form.get('fullName')?.hasError('minlength')) {
+            <div class="error-msg">Name must be at least 2 characters</div>
+          }
+          @if (form.get('fullName')?.touched && form.get('fullName')?.hasError('maxlength')) {
+            <div class="error-msg">Name must not exceed 50 characters</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="email"><lucide-icon name="mail" [size]="14"></lucide-icon> Email</label>
+          <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+          @if (form.get('email')?.touched && form.get('email')?.hasError('required')) {
+            <div class="error-msg">Email is required</div>
+          }
+          @if (form.get('email')?.touched && form.get('email')?.hasError('email') && !form.get('email')?.hasError('required')) {
+            <div class="error-msg">Please enter a valid email address</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="password"><lucide-icon name="lock" [size]="14"></lucide-icon> Password</label>
+          <div class="input-wrapper">
+            <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Min 6 characters" />
+            <button type="button" class="toggle-password" (click)="togglePassword()">
+              <lucide-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18"></lucide-icon>
+            </button>
+          </div>
+          @if (form.get('password')?.touched && form.get('password')?.hasError('required')) {
+            <div class="error-msg">Password is required</div>
+          }
+          @if (form.get('password')?.touched && form.get('password')?.hasError('minlength')) {
+            <div class="error-msg">Password must be at least 6 characters</div>
+          }
+          @if (form.get('password')?.touched && !form.get('password')?.hasError('required') && !form.get('password')?.hasError('minlength') && form.get('password')?.hasError('pattern')) {
+            <div class="error-msg">Must contain uppercase, lowercase, and a number</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="phone"><lucide-icon name="phone" [size]="14"></lucide-icon> Phone (optional)</label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="+216 XX XXX XXX" />
+          @if (form.get('phone')?.touched && form.get('phone')?.hasError('pattern')) {
+            <div class="error-msg">Please enter a valid phone number</div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="cin"><lucide-icon name="shield" [size]="14"></lucide-icon> CIN (National ID)</label>
+          <input id="cin" type="text" formControlName="cin" placeholder="12345678" maxlength="8" />
+          @if (form.get('cin')?.touched && form.get('cin')?.hasError('required')) {
+            <div class="error-msg">CIN is required</div>
+          }
+          @if (form.get('cin')?.touched && form.get('cin')?.hasError('pattern') && !form.get('cin')?.hasError('required')) {
+            <div class="error-msg">CIN must be exactly 8 digits</div>
+          }
+        </div>
+        @if (selectedRole === 'DOCTOR') {
+          <div class="form-group">
+            <label for="specialization"><lucide-icon name="stethoscope" [size]="14"></lucide-icon> Specialization</label>
+            <input id="specialization" type="text" formControlName="specialization" placeholder="e.g. Pediatrics" />
+            @if (form.get('specialization')?.touched && form.get('specialization')?.hasError('required')) {
+              <div class="error-msg">Specialization is required</div>
+            }
+          </div>
+          <div class="form-group">
+            <label for="licenseNumber"><lucide-icon name="award" [size]="14"></lucide-icon> License Number</label>
+            <input id="licenseNumber" type="text" formControlName="licenseNumber" placeholder="e.g. MED-12345" />
+            @if (form.get('licenseNumber')?.touched && form.get('licenseNumber')?.hasError('required')) {
+              <div class="error-msg">License number is required</div>
+            }
+            @if (form.get('licenseNumber')?.touched && form.get('licenseNumber')?.hasError('pattern') && !form.get('licenseNumber')?.hasError('required')) {
+              <div class="error-msg">Only letters, numbers, and hyphens (3-20 chars)</div>
+            }
+          </div>
+          <div class="form-group">
+            <label for="clinicName"><lucide-icon name="building-2" [size]="14"></lucide-icon> Clinic Name (optional)</label>
+            <input id="clinicName" type="text" formControlName="clinicName" placeholder="e.g. SunCare Pediatrics" />
+          </div>
+        }
+        @if (selectedRole === 'INFIRMIER') {
+          <div class="form-group">
+            <label for="serviceUnit"><lucide-icon name="heart-pulse" [size]="14"></lucide-icon> Service Unit / Ward</label>
+            <input id="serviceUnit" type="text" formControlName="serviceUnit" placeholder="e.g. Pediatric ICU" />
+            @if (form.get('serviceUnit')?.touched && form.get('serviceUnit')?.hasError('required')) {
+              <div class="error-msg">Service unit is required</div>
+            }
+          </div>
+        }
+        <button type="submit" class="btn-primary auth-page__submit" [disabled]="loading">
+          {{ loading ? 'Creating account...' : 'Create Account' }}
+        </button>
+      </form>
+    }
+    <p class="auth-page__switch">
+      Already have an account? <a routerLink="/auth/login">Sign in</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,644 @@
+<div class="prescription-list-container">
+  <div class="header">
+    <h2>My Children's Prescriptions</h2>
+  </div>
+
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="childSelect">
+        <i class="fas fa-child"></i> Select a child
+      </label>
+      <select 
+        id="childSelect" 
+        [(ngModel)]="selectedChildId" 
+        (change)="onChildChange()"
+        class="form-control">
+        <option [ngValue]="null">-- Select a child --</option>
+        <option *ngFor="let child of children" [ngValue]="child.id">
+          {{ child.fullName }} - {{ child.dateOfBirth | date: 'dd/MM/yyyy' }} ({{ child.gender === 'MALE' ? 'Boy' : 'Girl' }})
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !selectedChildId" class="info-message">
+    <i class="fas fa-info-circle"></i>
+    <p>Select a child to view their prescriptions</p>
+  </div>
+
+  <div *ngIf="!loading && selectedChildId && prescriptions.length === 0" class="empty-state">
+    <i class="fas fa-prescription"></i>
+    <p>No prescriptions found for this child</p>
+  </div>
+
+  
+  <div class="search-sort-section" *ngIf="!loading && prescriptions.length > 0">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search by diagnosis, medication..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+      <button class="clear-btn" *ngIf="searchTerm" (click)="clearSearch()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="sort-controls">
+      <select class="sort-select" [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
+        <option value="date">Sort by date</option>
+        <option value="status">Sort by status</option>
+        <option value="diagnostic">Sort by diagnosis</option>
+      </select>
+      <button class="btn-sort" (click)="toggleSortOrder()">
+        <i [class]="sortOrder === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+      </button>
+    </div>
+  </div>
+
+  
+  <div *ngIf="!loading && prescriptions.length > 0 && filteredPrescriptions.length === 0" class="empty-filtered">
+    <i class="fas fa-search"></i>
+    <p>No prescriptions match your search</p>
+    <button class="btn-secondary" (click)="clearSearch()">Clear search</button>
+  </div>
+
+  <div class="prescriptions-grid" *ngIf="!loading && filteredPrescriptions.length > 0">
+    <div class="prescription-card" *ngFor="let prescription of filteredPrescriptions">
+      <div class="card-header">
+        <span class="prescription-date">
+          <i class="fas fa-calendar-alt"></i>
+          {{ prescription.datePrescription | date: 'dd/MM/yyyy' }}
+        </span>
+        <span class="status-badge" [ngClass]="getStatutClass(prescription.statut)">
+          {{ getStatutLabel(prescription.statut) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="diagnostic-section">
+          <h3><i class="fas fa-stethoscope"></i> Diagnosis</h3>
+          <p>{{ prescription.diagnostic }}</p>
+        </div>
+        
+        <div class="medications-section">
+          <h3><i class="fas fa-pills"></i> Medications ({{ prescription.medicaments.length }})</h3>
+          <div class="medication-list">
+            <div class="medication-item" *ngFor="let med of prescription.medicaments">
+              <div class="medication-header">
+                <strong>{{ med.nomCommercial }}</strong>
+                <span class="dci-badge">{{ med.dci }}</span>
+              </div>
+              
+              <div class="medication-details">
+                <div class="detail-row" *ngIf="med.formePharmaceutique || med.dosage">
+                  <i class="fas fa-capsules"></i>
+                  <span>{{ med.formePharmaceutique }} {{ med.dosage }}</span>
+                </div>
+                
+                <div class="detail-row">
+                  <i class="fas fa-clock"></i>
+                  <span>
+                    {{ med.posologie.quantite }} {{ med.posologie.unite }} - 
+                    {{ med.posologie.frequence }}
+                  </span>
+                </div>
+                
+                <div class="detail-row" *ngIf="med.posologie.momentPrise">
+                  <i class="fas fa-utensils"></i>
+                  <span>{{ med.posologie.momentPrise }}</span>
+                </div>
+                
+                <div class="detail-row" *ngIf="med.posologie.dureeTraitementJours">
+                  <i class="fas fa-hourglass-half"></i>
+                  <span>Duration: {{ med.posologie.dureeTraitementJours }} days</span>
+                </div>
+                
+                <div class="instructions" *ngIf="med.instructionsSpeciales">
+                  <i class="fas fa-info-circle"></i>
+                  <span>{{ med.instructionsSpeciales }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="prescription-info">
+          <div class="info-card">
+            <i class="fas fa-calendar-check"></i>
+            <div>
+              <small>Valid until</small>
+              <strong>{{ prescription.dateExpiration | date: 'dd/MM/yyyy' }}</strong>
+            </div>
+          </div>
+          
+          <div class="info-card" *ngIf="prescription.renouvelable">
+            <i class="fas fa-redo"></i>
+            <div>
+              <small>Renewable</small>
+              <strong>{{ prescription.nombreRenouvellementsRestants }} times</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="notes-section" *ngIf="prescription.notes">
+          <h4><i class="fas fa-sticky-note"></i> Doctor's notes</h4>
+          <p>{{ prescription.notes }}</p>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn interpret-btn" (click)="showAIInterpretation(prescription)" title="AI Explanation in Simple Terms">
+          <i class="fas fa-robot"></i> Explain in Simple Terms
+        </button>
+        <button class="action-btn translate-btn" (click)="translatePrescription(prescription)" title="Translate Prescription">
+          <i class="fas fa-language"></i> Translate
+        </button>
+        <button class="action-btn pharmacy-btn" (click)="findNearbyPharmacies()" title="Find Nearby Pharmacies">
+          <i class="fas fa-map-marker-alt"></i> Find Pharmacies
+        </button>
+        <button class="action-btn guide-btn" (click)="showMedicationGuide(prescription)" title="Medication Guide">
+          <i class="fas fa-book-medical"></i> Medication Guide
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showGuideModal" (click)="closeGuideModal()">
+    <div class="modal-content guide-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-book-medical"></i> Guide des Médicaments pour Parents</h3>
+        <button class="close-btn" (click)="closeGuideModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="loadingGuide" class="loading-guide">
+          <i class="fas fa-spinner fa-spin"></i> Chargement du guide...
+        </div>
+
+        <div *ngIf="!loadingGuide && selectedPrescriptionGuide" class="guide-content">
+          
+          <div class="medication-tabs">
+            <button 
+              *ngFor="let med of selectedPrescriptionGuide.medicaments; let i = index"
+              class="tab-btn"
+              [class.active]="selectedMedicationIndex === i"
+              (click)="selectMedication(i)">
+              {{ med.nomCommercial }}
+            </button>
+          </div>
+
+          
+          <div *ngIf="selectedMedication" class="medication-guide">
+            <div class="guide-header">
+              <h2>{{ selectedMedication.nomCommercial }}</h2>
+              <span class="dci-badge-large">{{ selectedMedication.dci }}</span>
+            </div>
+
+            
+            <div class="guide-section why-section">
+              <h3><i class="fas fa-question-circle"></i> Pourquoi ce médicament?</h3>
+              <p class="simple-text">{{ getMedicationPurpose(selectedMedication) }}</p>
+            </div>
+
+            
+            <div class="guide-section how-section">
+              <h3><i class="fas fa-pills"></i> Comment le donner?</h3>
+              <div class="instruction-card">
+                <div class="instruction-item">
+                  <i class="fas fa-prescription-bottle"></i>
+                  <div>
+                    <strong>Dose:</strong>
+                    <p>{{ selectedMedication.posologie.quantite }} {{ selectedMedication.posologie.unite }}</p>
+                  </div>
+                </div>
+                <div class="instruction-item">
+                  <i class="fas fa-clock"></i>
+                  <div>
+                    <strong>Fréquence:</strong>
+                    <p>{{ selectedMedication.posologie.frequence }}</p>
+                  </div>
+                </div>
+                <div class="instruction-item" *ngIf="selectedMedication.posologie.momentPrise">
+                  <i class="fas fa-utensils"></i>
+                  <div>
+                    <strong>Moment:</strong>
+                    <p>{{ selectedMedication.posologie.momentPrise }}</p>
+                  </div>
+                </div>
+                <div class="instruction-item" *ngIf="selectedMedication.posologie.dureeTraitementJours">
+                  <i class="fas fa-calendar-alt"></i>
+                  <div>
+                    <strong>Durée:</strong>
+                    <p>{{ selectedMedication.posologie.dureeTraitementJours }} jours</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="guide-section warning-section">
+              <h3><i class="fas fa-exclamation-triangle"></i> Effets secondaires à surveiller</h3>
+              <div class="side-effects-list">
+                <div class="effect-item common">
+                  <span class="severity">Fréquents (normaux)</span>
+                  <ul>
+                    <li>Léger mal de ventre</li>
+                    <li>Fatigue passagère</li>
+                    <li>Changement d'appétit</li>
+                  </ul>
+                </div>
+                <div class="effect-item serious">
+                  <span class="severity">Graves (appeler médecin)</span>
+                  <ul>
+                    <li>Éruption cutanée importante</li>
+                    <li>Difficulté à respirer</li>
+                    <li>Vomissements répétés</li>
+                    <li>Fièvre élevée</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="guide-section missed-section">
+              <h3><i class="fas fa-redo"></i> Que faire si j'oublie une dose?</h3>
+              <div class="missed-dose-guide">
+                <div class="scenario">
+                  <i class="fas fa-check-circle"></i>
+                  <div>
+                    <strong>Si moins de 2 heures de retard:</strong>
+                    <p>Donnez la dose immédiatement</p>
+                  </div>
+                </div>
+                <div class="scenario">
+                  <i class="fas fa-times-circle"></i>
+                  <div>
+                    <strong>Si plus de 2 heures de retard:</strong>
+                    <p>Sautez cette dose et continuez normalement à la prochaine heure</p>
+                  </div>
+                </div>
+                <div class="scenario warning">
+                  <i class="fas fa-ban"></i>
+                  <div>
+                    <strong>Ne jamais:</strong>
+                    <p>Doubler la dose pour compenser</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="guide-section tips-section">
+              <h3><i class="fas fa-lightbulb"></i> Conseils pratiques</h3>
+              <div class="tips-grid">
+                <div class="tip-card">
+                  <i class="fas fa-glass-water"></i>
+                  <h4>Avec de l'eau</h4>
+                  <p>Donnez toujours avec un grand verre d'eau</p>
+                </div>
+                <div class="tip-card">
+                  <i class="fas fa-temperature-low"></i>
+                  <h4>Conservation</h4>
+                  <p>Garder à température ambiante, à l'abri de la lumière</p>
+                </div>
+                <div class="tip-card">
+                  <i class="fas fa-child"></i>
+                  <h4>Hors de portée</h4>
+                  <p>Ranger en hauteur, loin des enfants</p>
+                </div>
+                <div class="tip-card">
+                  <i class="fas fa-calendar-check"></i>
+                  <h4>Routine</h4>
+                  <p>Donnez à la même heure chaque jour</p>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="guide-section special-section" *ngIf="selectedMedication.instructionsSpeciales">
+              <h3><i class="fas fa-info-circle"></i> Instructions spéciales</h3>
+              <div class="special-instructions">
+                {{ selectedMedication.instructionsSpeciales }}
+              </div>
+            </div>
+
+            
+            <div class="guide-section emergency-section">
+              <h3><i class="fas fa-phone-alt"></i> En cas de problème</h3>
+              <div class="emergency-contacts">
+                <div class="contact-card">
+                  <i class="fas fa-user-md"></i>
+                  <div>
+                    <strong>Votre médecin</strong>
+                    <p>Contactez en cas de doute</p>
+                  </div>
+                </div>
+                <div class="contact-card urgent">
+                  <i class="fas fa-ambulance"></i>
+                  <div>
+                    <strong>Urgences: 190</strong>
+                    <p>En cas de réaction grave</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showPharmacyModal" (click)="closePharmacyModal()">
+    <div class="modal-content pharmacy-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-map-marker-alt"></i> Nearby Pharmacies</h3>
+        <button class="close-btn" (click)="closePharmacyModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="loadingPharmacies" class="loading-pharmacies">
+          <i class="fas fa-spinner fa-spin"></i> Searching nearby pharmacies...
+        </div>
+
+        <div *ngIf="pharmacyError" class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ pharmacyError }}
+        </div>
+
+        <div class="pharmacy-list" *ngIf="!loadingPharmacies && pharmacies.length > 0">
+          <div class="pharmacy-item" *ngFor="let pharmacy of pharmacies">
+            <div class="pharmacy-icon">
+              <i class="fas fa-pills"></i>
+            </div>
+            <div class="pharmacy-info">
+              <h4>{{ pharmacy.name }}</h4>
+              <p class="pharmacy-address">
+                <i class="fas fa-map-marker-alt"></i> {{ pharmacy.address }}, {{ pharmacy.city }}
+              </p>
+              <p class="pharmacy-distance">
+                <i class="fas fa-route"></i> {{ pharmacy.distance }} km away
+              </p>
+            </div>
+            <div class="pharmacy-actions">
+              <a 
+                [href]="'https://www.google.com/maps/dir/?api=1&destination=' + pharmacy.latitude + ',' + pharmacy.longitude" 
+                target="_blank" 
+                class="btn-directions"
+                title="Get Directions">
+                <i class="fas fa-directions"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showTranslationModal" (click)="closeTranslationModal()">
+    <div class="modal-content translation-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-language"></i> Prescription Translation</h3>
+        <button class="close-btn" (click)="closeTranslationModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <div class="language-selector">
+          <label for="languageSelect">
+            <i class="fas fa-globe"></i> Select Language:
+          </label>
+          <select 
+            id="languageSelect" 
+            [(ngModel)]="selectedLanguage" 
+            (change)="onLanguageChange(filteredPrescriptions[0])"
+            class="language-select">
+            <option *ngFor="let lang of availableLanguages" [value]="lang.code">
+              {{ lang.name }}
+            </option>
+          </select>
+        </div>
+
+        
+        <div *ngIf="translatingPrescription" class="loading-translation">
+          <i class="fas fa-spinner fa-spin"></i> Translating prescription...
+        </div>
+
+        
+        <div *ngIf="translationError" class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ translationError }}
+        </div>
+
+        
+        <div *ngIf="!translatingPrescription && !translationError && translatedPrescription" class="translated-content">
+          <div class="translation-section">
+            <h4><i class="fas fa-stethoscope"></i> Diagnosis</h4>
+            <p>{{ translatedPrescription.diagnostic }}</p>
+          </div>
+
+          <div class="translation-section" *ngIf="translatedPrescription.notes">
+            <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+            <p>{{ translatedPrescription.notes }}</p>
+          </div>
+
+          <div class="translation-section">
+            <h4><i class="fas fa-pills"></i> Medications</h4>
+            <div class="translated-medication" *ngFor="let med of translatedPrescription.medicaments">
+              <div class="med-header">
+                <strong>{{ med.nomCommercial }}</strong>
+                <span class="dci-badge">{{ med.dci }}</span>
+              </div>
+              
+              <div class="med-details">
+                <p *ngIf="med.formePharmaceutique">
+                  <i class="fas fa-capsules"></i> 
+                  <strong>Form:</strong> {{ med.formePharmaceutique }}
+                </p>
+                <p *ngIf="med.dosage">
+                  <i class="fas fa-prescription-bottle"></i> 
+                  <strong>Dosage:</strong> {{ med.dosage }}
+                </p>
+                <p *ngIf="med.posologie?.frequence">
+                  <i class="fas fa-clock"></i> 
+                  <strong>Frequency:</strong> {{ med.posologie.frequence }}
+                </p>
+                <p *ngIf="med.posologie?.momentPrise">
+                  <i class="fas fa-utensils"></i> 
+                  <strong>When:</strong> {{ med.posologie.momentPrise }}
+                </p>
+                <p *ngIf="med.instructionsSpeciales">
+                  <i class="fas fa-info-circle"></i> 
+                  <strong>Instructions:</strong> {{ med.instructionsSpeciales }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="translation-note">
+            <i class="fas fa-info-circle"></i>
+            <small>Translation provided by LibreTranslate (free service). For medical accuracy, please consult the original prescription.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="modal-overlay" *ngIf="showInterpretationModal" (click)="closeInterpretationModal()">
+    <div class="modal-content interpretation-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3><i class="fas fa-robot"></i> AI Prescription Explanation</h3>
+        <button class="close-btn" (click)="closeInterpretationModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <div class="language-selector-interpretation">
+          <label for="interpretationLanguageSelect">
+            <i class="fas fa-globe"></i> Choose your language:
+          </label>
+          <select 
+            id="interpretationLanguageSelect" 
+            [(ngModel)]="selectedInterpretationLanguage" 
+            (change)="onInterpretationLanguageChange()"
+            class="language-select-interpretation">
+            <option *ngFor="let lang of interpretationLanguages" [value]="lang.code">
+              {{ lang.name }}
+            </option>
+          </select>
+        </div>
+
+        
+        <div *ngIf="loadingInterpretation" class="loading-interpretation">
+          <i class="fas fa-spinner fa-spin"></i> Generating simple explanation...
+        </div>
+
+        
+        <div *ngIf="interpretationError" class="error-message">
+          <i class="fas fa-exclamation-circle"></i> {{ interpretationError }}
+        </div>
+
+        
+        <div *ngIf="!loadingInterpretation && !interpretationError && interpretation" class="interpretation-content">
+          
+          
+          <div class="interpretation-section diagnosis-section">
+            <h3><i class="fas fa-stethoscope"></i> What is the diagnosis?</h3>
+            <p class="simple-explanation">{{ interpretation.diagnosisExplanation }}</p>
+          </div>
+
+          
+          <div class="interpretation-section medications-section">
+            <h3><i class="fas fa-pills"></i> About the medications</h3>
+            <div class="medication-explanation" *ngFor="let medExplanation of interpretation.medicationExplanations">
+              <div class="med-header">
+                <h4>{{ medExplanation.medicationName }}</h4>
+                <span class="simple-name-badge">{{ medExplanation.simpleName }}</span>
+              </div>
+              
+              <div class="med-dosage-info">
+                <i class="fas fa-prescription-bottle"></i>
+                <span>{{ medExplanation.dosage }} - {{ medExplanation.frequency }}</span>
+              </div>
+
+              <div class="explanation-card">
+                <div class="explanation-item">
+                  <h5><i class="fas fa-question-circle"></i> What does it do?</h5>
+                  <p>{{ medExplanation.whatItDoes }}</p>
+                </div>
+
+                <div class="explanation-item">
+                  <h5><i class="fas fa-heartbeat"></i> Why was it prescribed?</h5>
+                  <p>{{ medExplanation.whyPrescribed }}</p>
+                </div>
+
+                <div class="explanation-item">
+                  <h5><i class="fas fa-lightbulb"></i> Practical tips</h5>
+                  <ul class="tips-list">
+                    <li *ngFor="let tip of medExplanation.practicalTips">{{ tip }}</li>
+                  </ul>
+                </div>
+
+                <div class="explanation-item">
+                  <h5><i class="fas fa-comments"></i> Questions to ask your doctor</h5>
+                  <ul class="questions-list">
+                    <li *ngFor="let question of medExplanation.questionsToAsk">{{ question }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="interpretation-section advice-section">
+            <h3><i class="fas fa-clipboard-check"></i> General advice</h3>
+            <ul class="advice-list">
+              <li *ngFor="let advice of interpretation.generalAdvice">{{ advice }}</li>
+            </ul>
+          </div>
+
+          
+          <div class="interpretation-section questions-section">
+            <h3><i class="fas fa-question"></i> Questions you might want to ask</h3>
+            <ul class="suggested-questions">
+              <li *ngFor="let question of interpretation.suggestedQuestions">{{ question }}</li>
+            </ul>
+          </div>
+
+          
+          <div class="interpretation-section warning-section">
+            <h3><i class="fas fa-exclamation-triangle"></i> Warning signs to watch for</h3>
+            <div class="warning-box">
+              <p class="warning-intro">Call your doctor immediately if you notice:</p>
+              <ul class="warning-list">
+                <li *ngFor="let warning of interpretation.warningSignsToWatch">{{ warning }}</li>
+              </ul>
+            </div>
+          </div>
+
+          
+          <div class="interpretation-disclaimer">
+            <i class="fas fa-info-circle"></i>
+            <p>This explanation is generated by AI to help you understand the prescription in simple terms. It is not a substitute for professional medical advice. Always consult your doctor if you have questions or concerns.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <app-chat-modal
+    *ngIf="showChatModal && selectedPrescriptionForChat"
+    [show]="showChatModal"
+    [doctorId]="selectedPrescriptionForChat.medecinId"
+    [parentId]="currentUserId"
+    [childId]="selectedPrescriptionForChat.patientId"
+    [currentUserId]="currentUserId"
+    [currentUserType]="currentUserType"
+    [subject]="'Question about prescription from ' + (selectedPrescriptionForChat.datePrescription | date:'short')"
+    [contextType]="ContextType.PRESCRIPTION"
+    [contextId]="selectedPrescriptionForChat.id"
+    (close)="closeChat()">
+  </app-chat-modal>
+</div>

@@ -1,0 +1,125 @@
+<div class="parent-lab-results-container">
+  <div class="header">
+    <button class="back-btn" (click)="goBack()"><span>←</span> Back to Dashboard</button>
+    <h1>Lab Results</h1>
+    <p class="subtitle">View your child's laboratory test results</p>
+  </div>
+
+  <div class="child-selector">
+    <label for="childSelect">Select Child:</label>
+    <select id="childSelect" [(ngModel)]="selectedChildId" (change)="onChildChange()" [disabled]="loadingChildren">
+      <option [ngValue]="null">-- Select a child --</option>
+      <option *ngFor="let child of children" [ngValue]="child.id">
+        {{ child.fullName }} ({{ child.dateOfBirth | date:'dd/MM/yyyy' }})
+      </option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading lab results...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && labResults.length === 0 && selectedChildId" class="empty-state">
+    <div class="empty-icon">🔬</div>
+    <h3>No Lab Results Yet</h3>
+    <p>No laboratory test results have been recorded for this child.</p>
+  </div>
+
+  <div *ngIf="!loading && labResults.length > 0" class="results-grid">
+    <div *ngFor="let result of labResults" class="result-card" [class.abnormal]="result.isAbnormal">
+
+      <div class="card-header">
+        <div class="test-info">
+          <h3>{{ result.testType }}</h3>
+          <span class="test-date">{{ result.testDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="getResultStatusClass(result)">
+          {{ getResultStatusText(result) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="metrics-grid">
+          <div class="metric" *ngIf="result.eGFR != null">
+            <span class="metric-label">eGFR</span>
+            <span class="metric-value">{{ result.eGFR | number:'1.1-1' }}</span>
+            <span class="metric-unit">mL/min/1.73m²</span>
+          </div>
+
+          <div class="metric" *ngIf="result.creatinine != null">
+            <span class="metric-label">Creatinine</span>
+            <span class="metric-value">{{ result.creatinine | number:'1.1-1' }}</span>
+            <span class="metric-unit">mg/dL</span>
+          </div>
+        </div>
+
+        <div class="alerts" *ngIf="result.alerts && result.alerts.length > 0">
+          <div class="alert-item" *ngFor="let alert of result.alerts">⚠️ {{ alert }}</div>
+        </div>
+
+        <div class="explanation">
+          <p>{{ getSimpleExplanation(result) }}</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-view-details" (click)="viewDetails(result)">View Full Details</button>
+
+        
+        <button class="btn-pdf" (click)="exportParentPDF(result)">Download PDF</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()" *ngIf="selectedResult">
+    <div class="modal-header">
+      <h2>Lab Result Details</h2>
+      <button class="close-btn" (click)="closeDetailsModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="detail-section">
+        <h3>Test Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Test Date:</span>
+            <span class="value">{{ selectedResult.testDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Test Type:</span>
+            <span class="value">{{ selectedResult.testType }}</span>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="detail-section">
+        <h3>Export</h3>
+        <button class="btn-pdf" (click)="exportParentPDF(selectedResult)">Download PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<app-chat-modal
+  *ngIf="showChatModal && selectedResultForChat"
+  [show]="showChatModal"
+  [doctorId]="selectedResultForChat.doctorId"
+  [parentId]="currentUserId"
+  [childId]="selectedResultForChat.patientId"
+  [currentUserId]="currentUserId"
+  [currentUserType]="currentUserType"
+  [subject]="'Question about lab result from ' + (selectedResultForChat.testDate | date:'short')"
+  [contextType]="ContextType.LAB_RESULT"
+  [contextId]="selectedResultForChat.id"
+  (close)="closeChat()">
+</app-chat-modal>

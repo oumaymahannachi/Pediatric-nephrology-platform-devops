@@ -1,0 +1,205 @@
+@if (alertMsg) {
+  <div class="alert" [class.alert-success]="alertType === 'success'" [class.alert-danger]="alertType === 'error'">
+    <lucide-icon [name]="alertType === 'success' ? 'check-circle' : 'alert-circle'" [size]="16"></lucide-icon>
+    {{ alertMsg }}
+    <button class="alert-close" (click)="alertMsg = ''"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+  </div>
+}
+
+
+@if (view === 'list') {
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="loading-spinner"></div>
+      <p class="text-muted mt-3">Loading plans...</p>
+    </div>
+  } @else {
+    <div class="list-header">
+      <h5 class="mb-0">Nutritional Plans</h5>
+      <button class="btn btn-primary" (click)="openAddPlan()">
+        <lucide-icon name="plus" [size]="16"></lucide-icon> New Plan
+      </button>
+    </div>
+
+    @if (nutritionalPlans.length === 0) {
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <lucide-icon name="clipboard" [size]="48" class="text-muted"></lucide-icon>
+          <h5 class="mt-3">No Plans</h5>
+          <p class="text-muted">You haven't created any nutritional plans yet.</p>
+        </div>
+      </div>
+    } @else {
+      @for (plan of nutritionalPlans; track plan.id) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="plan-row">
+              <div>
+                <h6 class="mb-1">{{ plan.title }}</h6>
+                <small class="text-muted">Patient: {{ getPatientName(plan.childId) }}</small>
+              </div>
+              <div class="plan-actions">
+                <span class="badge bg-primary">{{ plan.status }}</span>
+                <button class="btn btn-sm btn-outline-primary" (click)="openEditPlan(plan)">
+                  <lucide-icon name="pencil" [size]="14"></lucide-icon>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="deletePlan(plan)">
+                  <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+                </button>
+              </div>
+            </div>
+            @if (plan.description) {
+              <p class="text-muted small mt-2 mb-1">{{ plan.description }}</p>
+            }
+            <div class="small text-muted">
+              {{ plan.startDate | date:'MMM d, y' }} &mdash; {{ plan.endDate | date:'MMM d, y' }}
+            </div>
+            @if (plan.meals && plan.meals.length > 0) {
+              <div class="mt-2">
+                <strong class="small">Meals ({{ plan.meals.length }}):</strong>
+                <div class="row mt-1">
+                  @for (meal of plan.meals; track $index) {
+                    <div class="col-md-3 mb-2">
+                      <div class="border rounded p-2 small">
+                        <strong>{{ meal.name }}</strong>
+                        @if (meal.time) { <span class="text-muted d-block">{{ meal.time }}</span> }
+                        @if (meal.calories) { <span class="text-muted">{{ meal.calories }} cal</span> }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+}
+
+
+@if (view === 'form') {
+  <div class="form-page">
+    <div class="form-topbar">
+      <button class="btn-back" (click)="cancelForm()">
+        <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
+        Back to Plans
+      </button>
+      <h5 class="mb-0">{{ editingPlan ? 'Edit' : 'New' }} Nutritional Plan</h5>
+    </div>
+
+    <form [formGroup]="planForm" (ngSubmit)="savePlan()">
+      
+      <div class="form-card">
+        <h6 class="section-title"><lucide-icon name="user" [size]="15"></lucide-icon> Basic Information</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Patient <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="childId">
+              <option value="">Select patient</option>
+              @for (p of patients; track p.id) {
+                <option [value]="p.id">{{ p.fullName }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="title" placeholder="e.g. Weight Gain Plan" />
+          </div>
+        </div>
+        <div class="mb-0">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" formControlName="description" rows="2" placeholder="Brief plan description"></textarea>
+        </div>
+      </div>
+
+      
+      <div class="form-card">
+        <h6 class="section-title"><lucide-icon name="calendar" [size]="15"></lucide-icon> Schedule</h6>
+        <div class="row mb-0">
+          <div class="col-md-6 mb-0">
+            <label class="form-label">Start Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" formControlName="startDate" />
+          </div>
+          <div class="col-md-6 mb-0">
+            <label class="form-label">End Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" formControlName="endDate" />
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="form-card">
+        <h6 class="section-title"><lucide-icon name="target" [size]="15"></lucide-icon> Goals & Restrictions</h6>
+        <div class="row mb-0">
+          <div class="col-md-6 mb-0">
+            <label class="form-label">Goals</label>
+            <textarea class="form-control" formControlName="goals" rows="2" placeholder="Plan goals"></textarea>
+          </div>
+          <div class="col-md-6 mb-0">
+            <label class="form-label">Restrictions</label>
+            <textarea class="form-control" formControlName="restrictions" rows="2" placeholder="Dietary restrictions"></textarea>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="form-card">
+        <div class="meals-header">
+          <h6 class="section-title mb-0"><lucide-icon name="utensils" [size]="15"></lucide-icon> Meals</h6>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addMealRow()">
+            <lucide-icon name="plus" [size]="14"></lucide-icon> Add Meal
+          </button>
+        </div>
+        @if (mealsArray.length === 0) {
+          <div class="empty-meals">
+            <lucide-icon name="utensils" [size]="28" class="text-muted"></lucide-icon>
+            <p class="text-muted small mb-0 mt-1">No meals added yet. Click "Add Meal" to start.</p>
+          </div>
+        }
+        <div formArrayName="meals">
+          @for (meal of mealsArray.controls; track $index; let i = $index) {
+            <div class="meal-card" [formGroupName]="i">
+              <div class="meal-card-header">
+                <span class="meal-badge">{{ i + 1 }}</span>
+                <strong class="small">Meal {{ i + 1 }}</strong>
+                <button type="button" class="btn-remove-meal" (click)="removeMealRow(i)" title="Remove">
+                  <lucide-icon name="x" [size]="14"></lucide-icon>
+                </button>
+              </div>
+              <div class="meal-card-body">
+                <div class="row">
+                  <div class="col-md-4 mb-2">
+                    <input type="text" class="form-control form-control-sm" formControlName="name" placeholder="Meal name" />
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <input type="text" class="form-control form-control-sm" formControlName="time" placeholder="08:00" />
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <input type="number" class="form-control form-control-sm" formControlName="calories" placeholder="Cal" />
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <input type="text" class="form-control form-control-sm" formControlName="description" placeholder="Notes" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="planForm.invalid || planSaving">
+          @if (planSaving) {
+            <span class="spinner-sm"></span> Saving...
+          } @else {
+            <lucide-icon [name]="editingPlan ? 'save' : 'plus'" [size]="15"></lucide-icon>
+            {{ editingPlan ? 'Update Plan' : 'Create Plan' }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}

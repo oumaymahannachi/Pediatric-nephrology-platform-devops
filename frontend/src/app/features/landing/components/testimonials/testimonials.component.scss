@@ -1,0 +1,67 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.testimonials {
+  @include section-padding;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-8;
+    text-align: left;
+
+    @include respond(md) { grid-template-columns: repeat(2, 1fr); }
+    @include respond(lg) { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  &__card {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform $transition-base;
+
+    &:hover { transform: translateY(-4px); }
+  }
+
+  &__text {
+    font-size: $font-size-base;
+    color: $gray-600;
+    line-height: 1.8;
+    margin-bottom: $space-6;
+    font-style: italic;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+    color: $white;
+    font-size: $font-size-sm;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    display: block;
+    font-size: $font-size-sm;
+    font-weight: 700;
+    color: $gray-900;
+  }
+
+  &__role {
+    display: block;
+    font-size: $font-size-xs;
+    color: $gray-400;
+  }
+}

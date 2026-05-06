@@ -1,0 +1,50 @@
+<div class="auth-page">
+  <div class="auth-page__card animate-fade-in-up">
+    <div class="auth-page__header">
+      <a routerLink="/" class="auth-page__brand">
+        <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="auth-page__logo" />
+      </a>
+      <h1>Welcome back</h1>
+      <p>Sign in to your account</p>
+    </div>
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-group">
+        <label for="email"><lucide-icon name="mail" [size]="14"></lucide-icon> Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+        @if (form.get('email')?.touched && form.get('email')?.hasError('required')) {
+          <div class="error-msg">Email is required</div>
+        }
+        @if (form.get('email')?.touched && form.get('email')?.hasError('email') && !form.get('email')?.hasError('required')) {
+          <div class="error-msg">Please enter a valid email address</div>
+        }
+      </div>
+      <div class="form-group">
+        <label for="password"><lucide-icon name="lock" [size]="14"></lucide-icon> Password</label>
+        <div class="input-wrapper">
+          <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" />
+          <button type="button" class="toggle-password" (click)="togglePassword()">
+            <lucide-icon [name]="showPassword ? 'eye-off' : 'eye'" [size]="18"></lucide-icon>
+          </button>
+        </div>
+        @if (form.get('password')?.touched && form.get('password')?.hasError('required')) {
+          <div class="error-msg">Password is required</div>
+        }
+        @if (form.get('password')?.touched && form.get('password')?.hasError('minlength')) {
+          <div class="error-msg">Password must be at least 6 characters</div>
+        }
+      </div>
+      <div class="auth-page__forgot">
+        <a routerLink="/auth/forgot-password">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn-primary auth-page__submit" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+    <p class="auth-page__switch">
+      Don't have an account? <a routerLink="/auth/signup">Sign up</a>
+    </p>
+  </div>
+</div>

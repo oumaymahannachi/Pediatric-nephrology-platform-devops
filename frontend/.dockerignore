@@ -1,0 +1,7 @@
+node_modules
+# dist (removed to allow docker build)
+
+.angular
+.vscode
+.git
+Dockerfile

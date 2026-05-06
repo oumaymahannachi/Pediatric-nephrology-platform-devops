@@ -1,0 +1,202 @@
+<div class="ep">
+  <div class="ep__container">
+    <div class="ep__top-bar">
+      <a [routerLink]="getBackRoute()" class="ep__back-link">
+        <lucide-icon name="arrow-left" [size]="18"></lucide-icon>
+        <span>Back to Dashboard</span>
+      </a>
+      <h1 class="ep__page-title">My Profile</h1>
+    </div>
+    @if (loading) {
+      <div class="ep__loader">
+        <div class="ep__spinner"></div>
+        <p>Loading your profile...</p>
+      </div>
+    } @else {
+      @if (success) {
+        <div class="ep__alert ep__alert--success">
+          <lucide-icon name="check-circle" [size]="20"></lucide-icon>
+          <span>Profile updated successfully!</span>
+        </div>
+      }
+      @if (error) {
+        <div class="ep__alert ep__alert--error">
+          <lucide-icon name="alert-circle" [size]="20"></lucide-icon>
+          <span>{{ error }}</span>
+          <button (click)="error = ''"><lucide-icon name="x" [size]="16"></lucide-icon></button>
+        </div>
+      }
+      <div class="ep__layout">
+        <aside class="ep__sidebar">
+          <div class="ep__card ep__identity">
+            <div class="ep__avatar">{{ getInitials() }}</div>
+            <h2 class="ep__name">{{ profile?.fullName }}</h2>
+            <p class="ep__email">{{ profile?.email }}</p>
+            <div class="ep__role-chip" [attr.data-role]="role">
+              <lucide-icon [name]="getRoleIcon()" [size]="14"></lucide-icon>
+              {{ getRoleBadge() }}
+            </div>
+          </div>
+          <div class="ep__card ep__quick-info">
+            <h3>Account Info</h3>
+            <ul>
+              <li>
+                <span class="ep__qi-label">Status</span>
+                <span class="ep__qi-value ep__qi-value--active">{{ profile?.status || 'ACTIVE' }}</span>
+              </li>
+              <li>
+                <span class="ep__qi-label">Email</span>
+                @if (profile?.emailVerified) {
+                  <span class="ep__qi-value ep__qi-value--verified">
+                    <lucide-icon name="check-circle" [size]="14"></lucide-icon> Verified
+                  </span>
+                } @else {
+                  <span class="ep__qi-value ep__qi-value--unverified">
+                    <lucide-icon name="alert-circle" [size]="14"></lucide-icon> Unverified
+                  </span>
+                }
+              </li>
+              <li>
+                <span class="ep__qi-label">CIN</span>
+                <span class="ep__qi-value">{{ profile?.cin || '---' }}</span>
+              </li>
+              <li>
+                <span class="ep__qi-label">Role</span>
+                <span class="ep__qi-value">{{ getRoleBadge() }}</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+        <main class="ep__main">
+          <form [formGroup]="form" (ngSubmit)="save()">
+            <div class="ep__card ep__section">
+              <div class="ep__section-head">
+                <div class="ep__section-icon"><lucide-icon name="user" [size]="20"></lucide-icon></div>
+                <div>
+                  <h3>Personal Information</h3>
+                  <p>Manage your basic account details</p>
+                </div>
+              </div>
+              <div class="ep__grid">
+                <div class="ep__field">
+                  <label for="fullName">Full Name <span class="req">*</span></label>
+                  <div class="ep__input" [class.ep__input--error]="f['fullName'].touched && f['fullName'].invalid">
+                    <lucide-icon name="user" [size]="16"></lucide-icon>
+                    <input id="fullName" formControlName="fullName" placeholder="Your full name" />
+                  </div>
+                  @if (f['fullName'].touched && f['fullName'].errors) {
+                    <span class="ep__err">
+                      @if (f['fullName'].errors['required']) { Name is required }
+                      @if (f['fullName'].errors['minlength']) { At least 2 characters }
+                    </span>
+                  }
+                </div>
+                <div class="ep__field">
+                  <label for="email">Email Address</label>
+                  <div class="ep__input ep__input--locked">
+                    <lucide-icon name="mail" [size]="16"></lucide-icon>
+                    <input id="email" formControlName="email" />
+                    <lucide-icon name="lock" [size]="14" class="ep__lock"></lucide-icon>
+                  </div>
+                  <span class="ep__hint">Email cannot be changed</span>
+                </div>
+                <div class="ep__field">
+                  <label for="phone">Phone Number</label>
+                  <div class="ep__input" [class.ep__input--error]="f['phone'].touched && f['phone'].invalid">
+                    <lucide-icon name="phone" [size]="16"></lucide-icon>
+                    <input id="phone" formControlName="phone" placeholder="+216 XX XXX XXX" />
+                  </div>
+                  @if (f['phone'].touched && f['phone'].errors) {
+                    <span class="ep__err">Enter a valid phone number</span>
+                  }
+                </div>
+                <div class="ep__field">
+                  <label for="cin">CIN (National ID)</label>
+                  <div class="ep__input ep__input--locked">
+                    <lucide-icon name="shield" [size]="16"></lucide-icon>
+                    <input id="cin" formControlName="cin" />
+                    <lucide-icon name="lock" [size]="14" class="ep__lock"></lucide-icon>
+                  </div>
+                  <span class="ep__hint">CIN cannot be changed</span>
+                </div>
+              </div>
+            </div>
+            @if (role === 'DOCTOR') {
+              <div class="ep__card ep__section">
+                <div class="ep__section-head">
+                  <div class="ep__section-icon ep__section-icon--blue"><lucide-icon name="stethoscope" [size]="20"></lucide-icon></div>
+                  <div>
+                    <h3>Professional Details</h3>
+                    <p>Your medical credentials and practice info</p>
+                  </div>
+                </div>
+                <div class="ep__grid">
+                  <div class="ep__field">
+                    <label for="specialization">Specialization <span class="req">*</span></label>
+                    <div class="ep__input" [class.ep__input--error]="f['specialization'].touched && f['specialization'].invalid">
+                      <lucide-icon name="activity" [size]="16"></lucide-icon>
+                      <input id="specialization" formControlName="specialization" placeholder="e.g. Pediatrics" />
+                    </div>
+                    @if (f['specialization'].touched && f['specialization'].errors) {
+                      <span class="ep__err">Specialization is required</span>
+                    }
+                  </div>
+                  <div class="ep__field">
+                    <label for="licenseNumber">License Number <span class="req">*</span></label>
+                    <div class="ep__input" [class.ep__input--error]="f['licenseNumber'].touched && f['licenseNumber'].invalid">
+                      <lucide-icon name="file-text" [size]="16"></lucide-icon>
+                      <input id="licenseNumber" formControlName="licenseNumber" placeholder="e.g. MED-12345" />
+                    </div>
+                    @if (f['licenseNumber'].touched && f['licenseNumber'].errors) {
+                      <span class="ep__err">License number is required</span>
+                    }
+                  </div>
+                  <div class="ep__field ep__field--full">
+                    <label for="clinicName">Clinic / Hospital</label>
+                    <div class="ep__input">
+                      <lucide-icon name="map-pin" [size]="16"></lucide-icon>
+                      <input id="clinicName" formControlName="clinicName" placeholder="e.g. PediaLink Clinic" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (role === 'INFIRMIER') {
+              <div class="ep__card ep__section">
+                <div class="ep__section-head">
+                  <div class="ep__section-icon ep__section-icon--green"><lucide-icon name="heart-pulse" [size]="20"></lucide-icon></div>
+                  <div>
+                    <h3>Professional Details</h3>
+                    <p>Your nursing assignment info</p>
+                  </div>
+                </div>
+                <div class="ep__grid">
+                  <div class="ep__field ep__field--full">
+                    <label for="serviceUnit">Service Unit / Ward <span class="req">*</span></label>
+                    <div class="ep__input" [class.ep__input--error]="f['serviceUnit'].touched && f['serviceUnit'].invalid">
+                      <lucide-icon name="heart-pulse" [size]="16"></lucide-icon>
+                      <input id="serviceUnit" formControlName="serviceUnit" placeholder="e.g. Pediatric ICU" />
+                    </div>
+                    @if (f['serviceUnit'].touched && f['serviceUnit'].errors) {
+                      <span class="ep__err">Service unit is required</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+            <div class="ep__actions">
+              <a [routerLink]="getBackRoute()" class="ep__btn ep__btn--ghost">Cancel</a>
+              <button type="submit" class="ep__btn ep__btn--primary" [disabled]="saving || form.pristine">
+                @if (saving) {
+                  <div class="ep__btn-spin"></div> Saving...
+                } @else {
+                  <lucide-icon name="save" [size]="16"></lucide-icon> Save Changes
+                }
+              </button>
+            </div>
+          </form>
+        </main>
+      </div>
+    }
+  </div>
+</div>

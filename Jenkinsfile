@@ -15,62 +15,55 @@ pipeline {
         }
 
         stage('Backend Test') {
-            agent {
-                docker { 
-                    image 'maven:3.9.6-eclipse-temurin-17-alpine'
-                    args '-v /root/.m2:/root/.m2 --network pedialink-net'
-                }
-            }
             steps {
-                dir('backend') {
-                    echo "Running Unit Tests..."
-                    sh 'mvn test'
+                script {
+                    docker.image('maven:3.9.6-eclipse-temurin-17-alpine').inside('-v /root/.m2:/root/.m2 --network pedialink-net') {
+                        dir('backend') {
+                            echo "Running Unit Tests..."
+                            sh 'mvn test'
+                        }
+                    }
                 }
             }
         }
 
         stage('Backend Build') {
-            agent {
-                docker { 
-                    image 'maven:3.9.6-eclipse-temurin-17-alpine'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
-                dir('backend') {
-                    echo "Building Java Microservices (Artifact Generation)..."
-                    sh 'mvn package -DskipTests'
+                script {
+                    docker.image('maven:3.9.6-eclipse-temurin-17-alpine').inside('-v /root/.m2:/root/.m2') {
+                        dir('backend') {
+                            echo "Building Java Microservices (Artifact Generation)..."
+                            sh 'mvn package -DskipTests'
+                        }
+                    }
                 }
             }
         }
 
         stage('Frontend Build') {
-            agent {
-                docker { 
-                    image 'node:20-alpine'
-                }
-            }
             steps {
-                dir('frontend') {
-                    echo "Building Angular App..."
-                    sh 'npm install'
-                    sh 'npm run build -- --configuration production'
+                script {
+                    docker.image('node:20-alpine').inside() {
+                        dir('frontend') {
+                            echo "Building Angular App..."
+                            sh 'npm install'
+                            sh 'npm run build -- --configuration production'
+                        }
+                    }
                 }
             }
         }
 
         stage('SonarQube Scan') {
-            agent {
-                docker { 
-                    image 'maven:3.9.6-eclipse-temurin-17-alpine'
-                    args '-v /root/.m2:/root/.m2 --network pedialink-net'
-                }
-            }
             steps {
-                dir('backend') {
-                    echo "Running SonarQube Analysis..."
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=pedialink-backend"
+                script {
+                    docker.image('maven:3.9.6-eclipse-temurin-17-alpine').inside('-v /root/.m2:/root/.m2 --network pedialink-net') {
+                        dir('backend') {
+                            echo "Running SonarQube Analysis..."
+                            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=pedialink-backend"
+                            }
+                        }
                     }
                 }
             }
@@ -99,6 +92,8 @@ pipeline {
                         images.each { name, path ->
                             echo "Processing ${name}..."
                             dir(path) {
+                                // S'assurer que le dossier target existe avant de builder
+                                sh "ls -la" 
                                 sh "docker build -t ${REGISTRY}/${name}:latest ."
                                 sh "docker push ${REGISTRY}/${name}:latest"
                             }
@@ -110,19 +105,19 @@ pipeline {
 
         stage('Kubernetes - Deploy') {
             steps {
-                echo "Deploying to Kubernetes Cluster (KubeAdm)..."
-                sh "kubectl apply -f k8s/infrastructure/core-infra.yml"
-                sh "kubectl apply -f k8s/backend/auth-deployment.yml"
-                sh "kubectl apply -f k8s/backend/gateway-deployment.yml"
-                sh "kubectl apply -f k8s/backend/dossiermedical-deployment.yml"
-                sh "kubectl apply -f k8s/frontend/frontend-deployment.yml"
+                echo "Deploying to Kubernetes..."
+                dir('k8s') {
+                    sh "kubectl apply -f infrastructure/core-infra.yml"
+                    sh "kubectl apply -f backend/"
+                    sh "kubectl apply -f frontend/"
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Sprint 3: Pipeline executed successfully!"
+            echo "Sprint 3: Pipeline completed successfully!"
         }
         failure {
             echo "Sprint 3: Pipeline failed. Check logs."

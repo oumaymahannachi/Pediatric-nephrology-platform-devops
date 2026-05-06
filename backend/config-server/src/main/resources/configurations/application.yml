@@ -11,6 +11,15 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  server:
+    port: ${server.port} # Garder le même port pour actuator
+
+# Forcer la désactivation de la sécurité sur les endpoints actuator si possible via properties
+spring:
+  security:
+    user:
+      name: user
+      password: password
 
 eureka:
   client:

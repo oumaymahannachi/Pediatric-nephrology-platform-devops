@@ -16,6 +16,9 @@ data:
     scrape_configs:
       - job_name: 'spring-boot-services'
         metrics_path: '/actuator/prometheus'
+        basic_auth:
+          username: 'user'
+          password: 'password'
         static_configs:
           - targets: 
             - 'auth-service.pedialink:8081'

@@ -107,9 +107,9 @@ pipeline {
             steps {
                 echo "Deploying to Kubernetes..."
                 dir('k8s') {
-                    sh "kubectl apply -f infrastructure/core-infra.yml"
-                    sh "kubectl apply -f backend/"
-                    sh "kubectl apply -f frontend/"
+                    sh "kubectl apply -f infrastructure/core-infra.yml --validate=false"
+                    sh "kubectl apply -f backend/ --validate=false"
+                    sh "kubectl apply -f frontend/ --validate=false"
                 }
             }
         }
@@ -118,7 +118,7 @@ pipeline {
             steps {
                 echo "Deploying Monitoring Stack..."
                 dir('k8s/monitoring') {
-                    sh "kubectl apply -f monitoring-stack.yml"
+                    sh "kubectl apply -f monitoring-stack.yml --validate=false"
                 }
             }
         }

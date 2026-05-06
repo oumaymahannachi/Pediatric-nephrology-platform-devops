@@ -51,10 +51,10 @@ pipeline {
             steps {
                 dir('backend') {
                     echo "Running SonarQube Analysis..."
-                    withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'sonar-token')]) {
                         sh "mvn sonar:sonar \
                             -Dsonar.host.url=${SONAR_URL} \
-                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.login=${sonar-token} \
                             -Dsonar.projectKey=pedialink-backend"
                     }
                 }

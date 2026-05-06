@@ -46,7 +46,10 @@ pipeline {
 
         stage('SonarQube Scan') {
             agent {
-                docker { image 'maven:3.9.6-eclipse-temurin-17-alpine' }
+                docker { 
+                    image 'maven:3.9.6-eclipse-temurin-17-alpine'
+                    args '--network pedialink-net'
+                }
             }
             steps {
                 dir('backend') {

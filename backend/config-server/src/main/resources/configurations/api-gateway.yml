@@ -7,12 +7,36 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: http://localhost:4200
+            allowedOrigins: "*" # Permettre l'accès depuis le frontend K8s
             allowedMethods: "*"
             allowedHeaders: "*"
-            allowCredentials: true
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: prescription-service
+          uri: lb://prescription-service
+          predicates:
+            - Path=/prescriptions/**
+        - id: treatment-service
+          uri: lb://treatment-service
+          predicates:
+            - Path=/treatments/**
+        - id: dossiermedical-service
+          uri: lb://dossiermedical-service
+          predicates:
+            - Path=/dossiers/**
+        - id: lab-results-service
+          uri: lb://lab-results-service
+          predicates:
+            - Path=/lab-results/**
+        - id: messaging-service
+          uri: lb://messaging-service
+          predicates:
+            - Path=/messages/**
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/

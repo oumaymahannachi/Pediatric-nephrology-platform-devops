@@ -29,7 +29,7 @@ export interface AdherenceStats {
   providedIn: 'root'
 })
 export class AdherenceService {
-  private apiUrl = `${environment.apiUrl}/prescriptions/api/v1/adherence`;
+  private apiUrl = `${environment.apiUrl}/v1/adherence`;
 
   constructor(private http: HttpClient) {}
 

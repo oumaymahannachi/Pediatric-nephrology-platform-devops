@@ -12,7 +12,9 @@ import {
   Pencil, Phone, Plus, Ruler, Save, Settings, Shield, ShieldAlert, ShieldCheck, Star, Stethoscope, TrendingUp,
   Twitter, User, UserCircle, Users, Utensils, X, Activity, Clock, MapPin, AlertCircle, CheckCircle,
   HeartPulse, Syringe, Thermometer, Trash2, Search, Ban, UserCheck, RefreshCw,
-  FlaskConical, MessageCircle, Pill, FolderOpen, BarChart2
+  FlaskConical, MessageCircle, Pill, FolderOpen, BarChart2,
+  List, CalendarDays, Grid, CheckCircle2, Target, FolderHeart, FlaskRound,
+  CalendarCheck, CalendarX, CalendarClock, RotateCcw, ArrowUp, ArrowDown
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -28,7 +30,9 @@ export const appConfig: ApplicationConfig = {
       Pencil, Phone, Plus, Ruler, Save, Settings, Shield, ShieldAlert, ShieldCheck, Star, Stethoscope, TrendingUp,
       Twitter, User, UserCircle, Users, Utensils, X, Activity, Clock, MapPin, AlertCircle, CheckCircle,
       HeartPulse, Syringe, Thermometer, Trash2, Search, Ban, UserCheck, RefreshCw,
-      FlaskConical, MessageCircle, Pill, FolderOpen, BarChart2
+      FlaskConical, MessageCircle, Pill, FolderOpen, BarChart2,
+      List, CalendarDays, Grid, CheckCircle2, Target, FolderHeart, FlaskRound,
+      CalendarCheck, CalendarX, CalendarClock, RotateCcw, ArrowUp, ArrowDown
     }))
   ]
 };

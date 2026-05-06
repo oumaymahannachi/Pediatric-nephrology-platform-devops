@@ -72,7 +72,7 @@ spring:
         - id: dossiermedical-service
           uri: lb://dossiermedical-service
           predicates:
-            - Path=/api/consultations/**,/api/dialysis/**,/api/examinations/**,/api/medical-intelligence/**,/api/medical-reports/**,/api/ocr/**,/api/availability/**,/api/clinical-analytics/**,/api/gfr/**
+            - Path=/api/consultations/**,/api/dialysis/**,/api/examinations/**,/api/medical-intelligence/**,/api/medical-reports/**,/api/ocr/**,/api/availability/**,/api/clinical-analytics/**,/api/gfr/**,/api/examens/**,/api/reports/**,/api/analytics/**,/api/dialyses/**
 
       globalcors:
         corsConfigurations:

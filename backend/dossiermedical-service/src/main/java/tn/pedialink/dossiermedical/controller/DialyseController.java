@@ -12,7 +12,7 @@ import tn.pedialink.dossiermedical.service.DialyseService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dialyses")
+@RequestMapping("/api/dialysis")
 @RequiredArgsConstructor
 public class DialyseController {
     private final DialyseService dialyseService;

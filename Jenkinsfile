@@ -105,20 +105,27 @@ pipeline {
 
         stage('Kubernetes - Deploy') {
             steps {
-                echo "Deploying to Kubernetes..."
-                dir('k8s') {
-                    sh "kubectl apply -f infrastructure/core-infra.yml --validate=false"
-                    sh "kubectl apply -f backend/ --validate=false"
-                    sh "kubectl apply -f frontend/ --validate=false"
+                withKubeConfig([kubeConfigPath: 'devops/kubeconfig']) {
+                    echo "Checking Kubernetes connection..."
+                    sh "kubectl cluster-info"
+                    echo "Deploying to Kubernetes..."
+                    dir('k8s') {
+                        sh "kubectl apply -f infrastructure/core-infra.yml --validate=false"
+                        sh "kubectl apply -f backend/ --validate=false"
+                        sh "kubectl apply -f frontend/ --validate=false"
+                    }
                 }
             }
         }
 
         stage('Monitoring') {
             steps {
-                echo "Deploying Monitoring Stack..."
-                dir('k8s/monitoring') {
-                    sh "kubectl apply -f monitoring-stack.yml --validate=false"
+                withKubeConfig([kubeConfigPath: 'devops/kubeconfig']) {
+                    echo "Deploying Monitoring Stack (Prometheus & Grafana)..."
+                    dir('k8s/monitoring') {
+                        sh "kubectl apply -f monitoring-stack.yml --validate=false"
+                    }
+                    echo "Monitoring deployed! Prometheus: port 9090 | Grafana: port 3000"
                 }
             }
         }

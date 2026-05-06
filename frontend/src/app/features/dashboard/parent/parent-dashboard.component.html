@@ -7,41 +7,35 @@
       </a>
       <nav class="fo__nav">
         <button class="fo__nav-link" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">
-          <lucide-icon name="layout-dashboard" [size]="18"></lucide-icon> Dashboard
+          <lucide-icon name="layout-dashboard" [size]="18"></lucide-icon> <span>Tableau de Bord</span>
         </button>
         <button class="fo__nav-link" [class.active]="activeTab === 'children'" (click)="setTab('children')">
-          <lucide-icon name="baby" [size]="18"></lucide-icon> My Children
+          <lucide-icon name="baby" [size]="18"></lucide-icon> <span>Mes Enfants</span>
         </button>
         <button class="fo__nav-link" [class.active]="activeTab === 'appointments'" (click)="setTab('appointments')">
-          <lucide-icon name="calendar" [size]="18"></lucide-icon> Appointments
+          <lucide-icon name="calendar" [size]="18"></lucide-icon> <span>Rendez-vous</span>
         </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'growth'" (click)="setTab('growth')">
-          <lucide-icon name="activity" [size]="18"></lucide-icon> Growth
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'prescriptions'" (click)="setTab('prescriptions')">
-          <lucide-icon name="file-text" [size]="18"></lucide-icon> Prescriptions
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'treatments'" (click)="setTab('treatments')">
-          <lucide-icon name="heart-pulse" [size]="18"></lucide-icon> Traitements
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'lab-results'" (click)="setTab('lab-results')">
-          <lucide-icon name="flask-conical" [size]="18"></lucide-icon> Lab Results
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'adherence'" (click)="setTab('adherence')">
-          <lucide-icon name="check-circle" [size]="18"></lucide-icon> Observance
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'progress'" (click)="setTab('progress')">
-          <lucide-icon name="trending-up" [size]="18"></lucide-icon> Progression
-        </button>
-        <a class="fo__nav-link" routerLink="/parent/education">
-          🎓 Espace Éducatif
+        <a class="fo__nav-link" routerLink="/parent/prescriptions" routerLinkActive="active">
+          <lucide-icon name="activity" [size]="18"></lucide-icon> <span>Prescriptions</span>
         </a>
-        <button class="fo__nav-link" [class.active]="activeTab === 'consultations'" (click)="setTab('consultations')">
-          <lucide-icon name="calendar" [size]="18"></lucide-icon> Consultations
-        </button>
-        <button class="fo__nav-link" [class.active]="activeTab === 'messages'" (click)="setTab('messages')">
-          <lucide-icon name="message-circle" [size]="18"></lucide-icon> Messages
-        </button>
+        <a class="fo__nav-link" routerLink="/parent/treatments" routerLinkActive="active">
+          <lucide-icon name="file-text" [size]="18"></lucide-icon> <span>Traitements</span>
+        </a>
+        <a class="fo__nav-link" routerLink="/parent/adherence" routerLinkActive="active">
+          <lucide-icon name="heart-pulse" [size]="18"></lucide-icon> <span>Suivi</span>
+        </a>
+        <a class="fo__nav-link" routerLink="/parent/lab-results" routerLinkActive="active">
+          <lucide-icon name="flask-conical" [size]="18"></lucide-icon> <span>Examens</span>
+        </a>
+        <a class="fo__nav-link" routerLink="/parent/education" routerLinkActive="active">
+          <span>🎓 Espace Éducatif</span>
+        </a>
+        <a class="fo__nav-link" routerLink="/parent/consultations" routerLinkActive="active">
+          <lucide-icon name="calendar-check" [size]="18"></lucide-icon> <span>Consultations</span>
+        </a>
+        <a class="fo__nav-link" routerLink="/parent/messages" routerLinkActive="active">
+          <lucide-icon name="message-circle" [size]="18"></lucide-icon> <span>Messages</span>
+        </a>
       </nav>
       <div class="fo__user-area">
         <button class="fo__user-btn" (click)="toggleUserMenu()">
@@ -896,7 +890,7 @@
         <div class="fo__detail-row">
           <div class="fo__detail-label">
             <lucide-icon name="calendar" [size]="16"></lucide-icon>
-            Date & Time
+            <span>Date & Time</span>
           </div>
           <div class="fo__detail-value">
             {{ selectedAppointment.dateTime | date:'dd MMMM yyyy at HH:mm' }}
@@ -906,7 +900,7 @@
         <div class="fo__detail-row">
           <div class="fo__detail-label">
             <lucide-icon name="activity" [size]="16"></lucide-icon>
-            Status
+            <span>Status</span>
           </div>
           <div class="fo__detail-value">
             <span class="fo__tag fo__tag--{{ getStatusClass(selectedAppointment.status || '') }}">
@@ -919,7 +913,7 @@
         <div class="fo__detail-row">
           <div class="fo__detail-label">
             <lucide-icon name="baby" [size]="16"></lucide-icon>
-            Child
+            <span>Child</span>
           </div>
           <div class="fo__detail-value">
             {{ getChildName(selectedAppointment.childId) }}
@@ -929,7 +923,7 @@
         <div class="fo__detail-row">
           <div class="fo__detail-label">
             <lucide-icon name="stethoscope" [size]="16"></lucide-icon>
-            Doctor
+            <span>Doctor</span>
           </div>
           <div class="fo__detail-value">
             Dr. {{ getDoctorName(selectedAppointment.doctorId) }}
@@ -939,7 +933,7 @@
         <div class="fo__detail-row">
           <div class="fo__detail-label">
             <lucide-icon name="file-text" [size]="16"></lucide-icon>
-            Reason
+            <span>Reason</span>
           </div>
           <div class="fo__detail-value">
             {{ selectedAppointment.reason || 'Not specified' }}
@@ -950,7 +944,7 @@
           <div class="fo__detail-row">
             <div class="fo__detail-label">
               <lucide-icon name="message-square" [size]="16"></lucide-icon>
-              Your notes
+              <span>Your notes</span>
             </div>
             <div class="fo__detail-value">
               {{ selectedAppointment.parentNotes }}
@@ -962,7 +956,7 @@
           <div class="fo__detail-row">
             <div class="fo__detail-label">
               <lucide-icon name="clipboard" [size]="16"></lucide-icon>
-              Doctor's notes
+              <span>Doctor's notes</span>
             </div>
             <div class="fo__detail-value">
               {{ selectedAppointment.doctorNotes }}
@@ -974,7 +968,7 @@
           <div class="fo__detail-row fo__detail-row--highlight">
             <div class="fo__detail-label">
               <lucide-icon name="calendar-clock" [size]="16"></lucide-icon>
-              New proposed date
+              <span>New proposed date</span>
             </div>
             <div class="fo__detail-value">
               {{ selectedAppointment.proposedDateTime | date:'dd MMMM yyyy at HH:mm' }}

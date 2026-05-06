@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import tn.pedialink.dossiermedical.service.PDFReportService;
 
 @RestController
-@RequestMapping("/api/reports")
+@RequestMapping("/api/medical-reports")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
 public class MedicalReportController {

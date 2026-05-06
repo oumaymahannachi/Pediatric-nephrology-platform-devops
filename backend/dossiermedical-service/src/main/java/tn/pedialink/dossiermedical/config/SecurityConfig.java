@@ -40,9 +40,10 @@ public class SecurityConfig {
                 .requestMatchers("GET", "/api/dialyses/sessions/patient/**").permitAll()
                 // Medical Intelligence - permit all for now
                 .requestMatchers("/api/medical-intelligence/**").permitAll()
-                // Appointments - gérés par JWT manuel dans AppointmentController
+                // Appointments & Consultations
                 .requestMatchers("/api/parent/appointments/**").permitAll()
                 .requestMatchers("/api/doctor/appointments/**").permitAll()
+                .requestMatchers("/api/consultations/**").permitAll()
                 // Tout le reste nécessite authentification
                 .anyRequest().authenticated()
             )

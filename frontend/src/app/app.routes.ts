@@ -104,6 +104,10 @@ export const routes: Routes = [
       {
         path: 'messages',
         loadComponent: () => import('./features/messaging/pages/parent-messages/parent-messages.component').then(m => m.ParentMessagesComponent)
+      },
+      {
+        path: 'consultations',
+        loadComponent: () => import('./features/dossier-medical/parent-consultations/parent-consultations.component').then(m => m.ParentConsultationsComponent)
       }
     ]
   },

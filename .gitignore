@@ -66,3 +66,9 @@ devops/sonar_db_data/
 devops/prometheus_data/
 devops/grafana/
 devops/registry_data/
+
+# Kubernetes - SECURITY: Real kubeconfig must NOT be committed
+# The file devops/kubeconfig is intentionally kept as a placeholder
+# Fill it with your real kubeconfig on the target machine:
+#   kubectl config view --minify --flatten > devops/kubeconfig
+# devops/kubeconfig  <-- Uncomment this line to ignore the real kubeconfig after filling it

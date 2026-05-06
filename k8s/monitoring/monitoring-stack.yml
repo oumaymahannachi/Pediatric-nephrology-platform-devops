@@ -17,7 +17,6 @@ data:
       - job_name: 'spring-boot-services'
         metrics_path: '/actuator/prometheus'
         static_configs:
-          # Utilisation des FQDN pour traverser les namespaces (service.namespace)
           - targets: 
             - 'auth-service.pedialink:8081'
             - 'prescription-service.pedialink:8082'
@@ -70,14 +69,14 @@ spec:
   ports:
     - port: 9090
       targetPort: 9090
-      nodePort: 30090 # Fixé pour un accès facile
+      nodePort: 30090
   type: NodePort
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-datasources
+  name: grafana-provisioning
   namespace: monitoring
 data:
   datasource.yaml: |
@@ -88,6 +87,17 @@ data:
       url: http://prometheus:9090
       access: proxy
       isDefault: true
+  dashboard.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'Default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards
 
 ---
 apiVersion: apps/v1
@@ -113,13 +123,15 @@ spec:
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: "admin"
+            - name: GF_INSTALL_PLUGINS
+              value: "grafana-clock-panel,grafana-simple-json-datasource"
           volumeMounts:
-            - name: datasource-volume
-              mountPath: /etc/grafana/provisioning/datasources
+            - name: provisioning-volume
+              mountPath: /etc/grafana/provisioning
       volumes:
-        - name: datasource-volume
+        - name: provisioning-volume
           configMap:
-            name: grafana-datasources
+            name: grafana-provisioning
 
 ---
 apiVersion: v1
@@ -133,5 +145,5 @@ spec:
   ports:
     - port: 3000
       targetPort: 3000
-      nodePort: 30030 # Fixé pour un accès facile
+      nodePort: 30030
   type: NodePort

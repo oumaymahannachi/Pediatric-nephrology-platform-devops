@@ -88,4 +88,5 @@ services:
 
 networks:
   pedialink-net:
+    name: pedialink-net
     driver: bridge

@@ -14,16 +14,31 @@ pipeline {
             }
         }
 
-        stage('Backend Build') {
+        stage('Backend Test') {
             agent {
                 docker { 
                     image 'maven:3.9.6-eclipse-temurin-17-alpine'
-                    args '-v /root/.m2:/root/.m2' // Cache Maven
+                    args '-v /root/.m2:/root/.m2 --network pedialink-net'
                 }
             }
             steps {
                 dir('backend') {
-                    echo "Building Java Microservices..."
+                    echo "Running Unit Tests..."
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Backend Build') {
+            agent {
+                docker { 
+                    image 'maven:3.9.6-eclipse-temurin-17-alpine'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
+            steps {
+                dir('backend') {
+                    echo "Building Java Microservices (Artifact Generation)..."
                     sh 'mvn clean package -DskipTests'
                 }
             }

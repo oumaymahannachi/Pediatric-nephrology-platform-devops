@@ -39,7 +39,7 @@ pipeline {
             steps {
                 dir('backend') {
                     echo "Building Java Microservices (Artifact Generation)..."
-                    sh 'mvn clean package -DskipTests'
+                    sh 'mvn package -DskipTests'
                 }
             }
         }

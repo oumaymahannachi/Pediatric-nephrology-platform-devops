@@ -31,7 +31,7 @@
         <module>treatment-monitoring-service</module>
         <module>prescription-service</module>
         <module>treatment-service</module>
-        <module>notification-service</module>
+        <module>dossiermedical-service</module>
         <module>lab-results-service</module>
         <module>messaging-service</module>
     </modules>

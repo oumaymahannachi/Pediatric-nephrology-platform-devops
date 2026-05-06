@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tn.pedialink.prescription.dto.prescription.PrescriptionCreateRequest;
 import tn.pedialink.prescription.dto.prescription.PrescriptionResponse;
 import tn.pedialink.prescription.service.PrescriptionService;
+import tn.pedialink.prescription.security.JwtUtil;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -36,6 +37,9 @@ class PrescriptionControllerTest {
 
     @MockBean
     private PrescriptionService prescriptionService;
+
+    @MockBean
+    private JwtUtil jwtUtil;
 
     private PrescriptionResponse mockResponse;
     private PrescriptionCreateRequest createRequest;

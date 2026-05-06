@@ -1,0 +1,55 @@
+<div class="dashboard">
+  <aside class="dashboard__sidebar">
+    <div class="dashboard__brand">
+      <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="dashboard__logo" />
+    </div>
+    <nav class="dashboard__nav">
+      @for (item of navItems; track item.label) {
+        <button class="dashboard__nav-item" [class.active]="item.active" (click)="setActiveNav(item)">
+          <span class="dashboard__nav-icon"><lucide-icon [name]="item.icon" [size]="20"></lucide-icon></span>
+          <span>{{ item.label }}</span>
+        </button>
+      }
+    </nav>
+    <a routerLink="/infirmier/profile" class="dashboard__nav-item">
+      <span class="dashboard__nav-icon"><lucide-icon name="edit" [size]="20"></lucide-icon></span>
+      <span>Edit Profile</span>
+    </a>
+    <button class="dashboard__nav-item dashboard__logout" (click)="logout()">
+      <span class="dashboard__nav-icon"><lucide-icon name="log-out" [size]="20"></lucide-icon></span>
+      <span>Logout</span>
+    </button>
+  </aside>
+  <div class="dashboard__main">
+    <header class="dashboard__topbar">
+      <h1>Nurse Dashboard</h1>
+      @if (currentUser$ | async; as user) {
+        <div class="dashboard__user">
+          <span class="dashboard__user-avatar"><lucide-icon name="heart-pulse" [size]="32"></lucide-icon></span>
+          <div>
+            <strong>{{ user.fullName }}</strong>
+            <span>{{ user.email }}</span>
+          </div>
+        </div>
+      }
+    </header>
+    <main class="dashboard__content">
+      <router-outlet></router-outlet>
+      <div class="dashboard__cards">
+        @for (s of stats; track s.label) {
+          <div class="dashboard__stat-card">
+            <span class="dashboard__stat-icon"><lucide-icon [name]="s.icon" [size]="28"></lucide-icon></span>
+            <div>
+              <h3>{{ s.label }}</h3>
+              <p class="dashboard__stat-value">{{ s.value }}</p>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="dashboard__placeholder">
+        <h2>Welcome, Nurse!</h2>
+        <p>Your patient care, vitals tracking, and task management features will appear here.</p>
+      </div>
+    </main>
+  </div>
+</div>

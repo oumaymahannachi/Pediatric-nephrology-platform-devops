@@ -1,0 +1,26 @@
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-badge">FAQ</span>
+      <h2 class="section-title">Frequently asked questions</h2>
+      <p class="section-subtitle">
+        Got questions? We've got answers.
+      </p>
+    </div>
+    <div class="faq__list">
+      @for (faq of faqs; track faq.question) {
+        <div class="faq__item" [class.faq__item--open]="faq.open">
+          <button class="faq__question" (click)="toggle(faq)">
+            <span>{{ faq.question }}</span>
+            <span class="faq__icon" [class.faq__icon--open]="faq.open"><lucide-icon name="chevron-down" [size]="20"></lucide-icon></span>
+          </button>
+          @if (faq.open) {
+            <div class="faq__answer animate-fade-in">
+              <p>{{ faq.answer }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>

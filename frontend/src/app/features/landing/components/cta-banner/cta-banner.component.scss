@@ -1,0 +1,55 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.cta-banner {
+  padding: $space-20 0;
+  background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+  color: $white;
+
+  &__title {
+    font-size: $font-size-3xl;
+    color: $white;
+    margin-bottom: $space-4;
+
+    @include respond(md) { font-size: $font-size-4xl; }
+  }
+
+  &__text {
+    color: rgba(255,255,255,0.8);
+    font-size: $font-size-lg;
+    max-width: 600px;
+    margin: 0 auto $space-8;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $space-4;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .btn-primary {
+      background: $white;
+      color: $primary;
+
+      &:hover {
+        background: $gray-100;
+        transform: translateY(-2px);
+      }
+    }
+
+    .btn-secondary {
+      border-color: rgba(255,255,255,0.5);
+      color: $white;
+
+      &:hover {
+        background: rgba(255,255,255,0.15);
+        border-color: $white;
+      }
+    }
+
+    .btn-lg {
+      padding: $space-4 $space-8;
+      font-size: $font-size-base;
+    }
+  }
+}

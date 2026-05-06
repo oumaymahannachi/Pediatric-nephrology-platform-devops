@@ -1,0 +1,97 @@
+<div class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2><i class="fas fa-plus-circle"></i> New Conversation</h2>
+      <button class="btn-close" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error }}</p>
+      </div>
+
+      <!-- Form -->
+      <form *ngIf="!loading" (ngSubmit)="onSubmit()">
+        <!-- Select Doctor -->
+        <div class="form-group">
+          <label for="doctor">
+            <i class="fas fa-user-md"></i> Select Doctor
+          </label>
+          <select 
+            id="doctor" 
+            [(ngModel)]="selectedDoctorId" 
+            name="doctor"
+            class="form-control"
+            required>
+            <option value="">Choose a doctor...</option>
+            <option *ngFor="let doctor of doctors" [value]="doctor.id">
+              {{ doctor.fullName }}
+              <span *ngIf="doctor.specialization"> - {{ doctor.specialization }}</span>
+            </option>
+          </select>
+        </div>
+
+        <!-- Select Child -->
+        <div class="form-group">
+          <label for="child">
+            <i class="fas fa-child"></i> Select Child
+          </label>
+          <select 
+            id="child" 
+            [(ngModel)]="selectedChildId" 
+            name="child"
+            class="form-control"
+            required>
+            <option value="">Choose a child...</option>
+            <option *ngFor="let child of children" [value]="child.id">
+              {{ child.firstName }} {{ child.lastName }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Subject -->
+        <div class="form-group">
+          <label for="subject">
+            <i class="fas fa-comment"></i> Subject
+          </label>
+          <input 
+            type="text" 
+            id="subject" 
+            [(ngModel)]="subject" 
+            name="subject"
+            class="form-control"
+            placeholder="e.g., Question about treatment"
+            maxlength="200"
+            required
+          />
+          <small class="character-count">{{ getCharacterCount() }}/200 characters</small>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="onClose()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="!isFormValid()">
+            <i class="fas fa-paper-plane"></i> Start Conversation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

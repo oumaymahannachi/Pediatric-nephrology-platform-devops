@@ -1,0 +1,256 @@
+services:
+
+  mongodb:
+    image: mongo:latest
+    container_name: pedialink-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - pedialink-net
+
+  eureka-server:
+    build: ./backend/eureka-server
+    container_name: pedialink-eureka
+    ports:
+      - "8761:8761"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - pedialink-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  config-server:
+    build: ./backend/config-server
+    container_name: pedialink-config
+    ports:
+      - "8888:8888"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - pedialink-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build: ./backend/api-gateway
+    container_name: pedialink-gateway
+    ports:
+      - "9090:8080"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    networks:
+      - pedialink-net
+
+  auth-service:
+    build: ./backend/auth-service
+    container_name: pedialink-auth
+    ports:
+      - "8081:8081"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  treatment-monitoring-service:
+    build: ./backend/treatment-monitoring-service
+    container_name: pedialink-treatment-monitoring
+    ports:
+      - "8092:8082"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  prescription-service:
+    build: ./backend/prescription-service
+    container_name: pedialink-prescription
+    ports:
+      - "8084:8084"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  treatment-service:
+    build: ./backend/treatment-service
+    container_name: pedialink-treatment
+    ports:
+      - "8085:8085"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  lab-results-service:
+    build: ./backend/lab-results-service
+    container_name: pedialink-lab-results
+    ports:
+      - "8089:8089"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  messaging-service:
+    build: ./backend/messaging-service
+    container_name: pedialink-messaging
+    ports:
+      - "8090:8090"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    volumes:
+      - messaging-uploads:/uploads
+    networks:
+      - pedialink-net
+
+  dossiermedical-service:
+    build: ./backend/dossiermedical-service
+    container_name: pedialink-dossiermedical
+    ports:
+      - "8087:8087"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - MONGODB_URI=mongodb://mongodb:27017/pedialink
+    networks:
+      - pedialink-net
+
+  frontend:
+    build: ./frontend
+    container_name: pedialink-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - pedialink-net
+
+networks:
+  pedialink-net:
+    driver: bridge
+
+volumes:
+  messaging-uploads:
+  mongodb-data:

@@ -1,0 +1,21 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://PediaLink:PediaLink@pedialink.0d8a5qd.mongodb.net/pedialink?retryWrites=true&w=majority
+      auto-index-creation: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://pedialink-eureka:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

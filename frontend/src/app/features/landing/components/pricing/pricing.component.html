@@ -1,0 +1,37 @@
+<section class="pricing" id="pricing">
+  <div class="container text-center">
+    <span class="section-badge">Pricing</span>
+    <h2 class="section-title">Simple, transparent pricing</h2>
+    <p class="section-subtitle">
+      Choose the plan that fits your needs. No hidden fees.
+    </p>
+    <div class="pricing__grid">
+      @for (plan of plans; track plan.name) {
+        <div class="pricing__card" [class.pricing__card--highlighted]="plan.highlighted">
+          @if (plan.highlighted) {
+            <span class="pricing__popular">Most Popular</span>
+          }
+          <h3 class="pricing__plan-name">{{ plan.name }}</h3>
+          <div class="pricing__price">
+            @if (plan.price !== 'Custom') {
+              <span class="pricing__currency">$</span>
+              <span class="pricing__amount">{{ plan.price }}</span>
+              <span class="pricing__period">/mo</span>
+            } @else {
+              <span class="pricing__amount pricing__amount--custom">Custom</span>
+            }
+          </div>
+          <p class="pricing__desc">{{ plan.description }}</p>
+          <ul class="pricing__features">
+            @for (f of plan.features; track f) {
+              <li><lucide-icon name="check" [size]="16" class="check-icon"></lucide-icon> {{ f }}</li>
+            }
+          </ul>
+          <a routerLink="/auth/signup" class="pricing__cta" [class.btn-primary]="plan.highlighted" [class.btn-secondary]="!plan.highlighted">
+            {{ plan.cta }}
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</section>

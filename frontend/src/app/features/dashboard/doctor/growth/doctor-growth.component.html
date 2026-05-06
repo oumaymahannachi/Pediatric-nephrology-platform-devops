@@ -1,0 +1,163 @@
+@if (loading) {
+  <div class="text-center py-5">
+    <div class="loading-spinner"></div>
+    <p class="text-muted mt-3">Loading patients...</p>
+  </div>
+} @else {
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <label class="form-label mb-0 fw-bold">Patient</label>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" [(ngModel)]="selectedPatientId" (ngModelChange)="onPatientSelected()">
+            <option value="">Select a patient</option>
+            @for (p of patients; track p.id) {
+              <option [value]="p.id">{{ p.fullName }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (selectedPatientId) {
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="growthSubTab === 'measurements'" (click)="growthSubTab = 'measurements'" href="javascript:">Measurements</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="growthSubTab === 'restrictions'" (click)="growthSubTab = 'restrictions'" href="javascript:">Dietary Restrictions</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="growthSubTab === 'plans'" (click)="growthSubTab = 'plans'" href="javascript:">Plans</a>
+      </li>
+    </ul>
+
+    @if (growthSubTab === 'measurements') {
+      <div class="card">
+        <div class="card-header"><h5>Growth Measurements</h5></div>
+        <div class="card-body table-border-style">
+          @if (patientMeasurements.length === 0) {
+            <p class="text-muted text-center py-3">No measurements recorded yet.</p>
+          } @else {
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Weight (kg)</th>
+                    <th>Height (cm)</th>
+                    <th>BMI</th>
+                    <th>Head Circ. (cm)</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (m of patientMeasurements; track m.id) {
+                    <tr>
+                      <td>{{ m.date | date:'MMM d, y' }}</td>
+                      <td>{{ m.weight }}</td>
+                      <td>{{ m.height }}</td>
+                      <td>{{ m.bmi ? (m.bmi | number:'1.1-1') : '-' }}</td>
+                      <td>{{ m.headCircumference || '-' }}</td>
+                      <td>{{ m.notes || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (growthSubTab === 'restrictions') {
+      <div class="card">
+        <div class="card-header"><h5>Dietary Restrictions</h5></div>
+        <div class="card-body">
+          @if (patientRestrictions.length === 0) {
+            <p class="text-muted text-center py-3">No dietary restrictions recorded.</p>
+          } @else {
+            <div class="row">
+              @for (r of patientRestrictions; track r.id) {
+                <div class="col-md-4 mb-3">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <span class="badge mb-2" [ngClass]="{
+                        'bg-danger': r.severity === 'SEVERE',
+                        'bg-warning': r.severity === 'HIGH',
+                        'bg-info': r.severity === 'MODERATE',
+                        'bg-secondary': r.severity === 'LOW'
+                      }">{{ r.severity }}</span>
+                      <h6>{{ r.allergen }}</h6>
+                      <small class="text-muted">{{ r.type }}</small>
+                      @if (r.description) {
+                        <p class="mt-2 mb-0 small">{{ r.description }}</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (growthSubTab === 'plans') {
+      <div class="card">
+        <div class="card-header"><h5>Nutritional Plans</h5></div>
+        <div class="card-body">
+          @if (patientPlans.length === 0) {
+            <p class="text-muted text-center py-3">No nutritional plans assigned.</p>
+          } @else {
+            @for (plan of patientPlans; track plan.id) {
+              <div class="card mb-3 border">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="mb-1">{{ plan.title }}</h6>
+                    <span class="badge bg-primary">{{ plan.status }}</span>
+                  </div>
+                  @if (plan.description) {
+                    <p class="text-muted small mb-2">{{ plan.description }}</p>
+                  }
+                  <div class="small text-muted mb-2">
+                    {{ plan.startDate | date:'MMM d, y' }} &mdash; {{ plan.endDate | date:'MMM d, y' }}
+                  </div>
+                  @if (plan.goals) {
+                    <p class="small"><strong>Goals:</strong> {{ plan.goals }}</p>
+                  }
+                  @if (plan.meals && plan.meals.length > 0) {
+                    <div class="mt-2">
+                      <strong class="small">Meals:</strong>
+                      <ul class="list-unstyled ms-2 mt-1">
+                        @for (meal of plan.meals; track meal.name) {
+                          <li class="small">
+                            <strong>{{ meal.name }}</strong>
+                            @if (meal.time) { <span class="text-muted">({{ meal.time }})</span> }
+                            @if (meal.calories) { <span class="text-muted">- {{ meal.calories }} cal</span> }
+                            @if (meal.description) { <br><span class="text-muted">{{ meal.description }}</span> }
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <lucide-icon name="user" [size]="48" class="text-muted"></lucide-icon>
+        <h5 class="mt-3">Select a Patient</h5>
+        <p class="text-muted">Choose a patient above to view growth data.</p>
+      </div>
+    </div>
+  }
+}

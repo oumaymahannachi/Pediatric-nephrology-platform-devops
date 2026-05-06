@@ -1,0 +1,18 @@
+<section class="how-it-works" id="how-it-works">
+  <div class="container text-center">
+    <span class="section-badge">How it works</span>
+    <h2 class="section-title">Get started in 4 simple steps</h2>
+    <p class="section-subtitle">
+      Whether you're a doctor or a parent, getting started is quick and easy.
+    </p>
+    <div class="how-it-works__steps">
+      @for (step of steps; track step.number) {
+        <div class="how-it-works__step">
+          <div class="how-it-works__number">{{ step.number }}</div>
+          <h3 class="how-it-works__step-title">{{ step.title }}</h3>
+          <p class="how-it-works__step-desc">{{ step.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

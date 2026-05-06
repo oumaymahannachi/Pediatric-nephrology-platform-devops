@@ -1,0 +1,704 @@
+<div class="examen-list">
+  <div class="header">
+    <h2><i class="fas fa-flask"></i> Examinations & Analyses</h2>
+  </div>
+
+  <div class="sub-tabs">
+    <button class="sub-tab-btn" [class.active]="activeSubTab === 'blood'" (click)="setSubTab('blood')">
+      <i class="fas fa-tint"></i> Blood Tests
+    </button>
+    <button class="sub-tab-btn" [class.active]="activeSubTab === 'lab'" (click)="setSubTab('lab')">
+      <i class="fas fa-vial"></i> Lab Results
+    </button>
+    <button class="sub-tab-btn" [class.active]="activeSubTab === 'imaging'" (click)="setSubTab('imaging')">
+      <i class="fas fa-x-ray"></i> Medical Imaging
+    </button>
+    <button class="sub-tab-btn" [class.active]="activeSubTab === 'history'" (click)="setSubTab('history')">
+      <i class="fas fa-chart-line"></i> Comparative History
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div class="sub-tab-content" *ngIf="!loading">
+    <!-- Blood Tests -->
+    <div *ngIf="activeSubTab === 'blood'" class="tab-panel">
+      <div class="panel-header">
+        <h3><i class="fas fa-tint"></i> Blood Tests</h3>
+        <div class="header-actions">
+          <button class="btn-ocr" (click)="openOcrModal('lab')" title="Scan document with OCR">
+            <i class="fas fa-camera"></i> Scan Document
+          </button>
+          <button class="btn-add" (click)="openBloodTestModal()">
+            <i class="fas fa-plus"></i> Add Blood Test
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="bloodTests.length === 0" class="empty-state">
+        <i class="fas fa-tint"></i>
+        <p>No blood tests recorded</p>
+      </div>
+
+      <div class="records-grid">
+        <div *ngFor="let test of bloodTests" class="record-card">
+          <div class="card-header">
+            <div>
+              <h4>{{ test.testType }}</h4>
+              <span class="date">{{ test.testDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <span class="badge" [class.abnormal]="test.abnormal">
+              {{ test.abnormal ? 'Abnormal' : 'Normal' }}
+            </span>
+          </div>
+          <div class="card-body">
+            <p *ngIf="test.laboratoryName"><strong>Laboratory:</strong> {{ test.laboratoryName }}</p>
+            <p *ngIf="test.interpretation"><strong>Interpretation:</strong> {{ test.interpretation }}</p>
+            <p *ngIf="test.notes"><strong>Notes:</strong> {{ test.notes }}</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn-edit" (click)="openBloodTestModal(test)">Edit</button>
+            <button class="btn-delete" (click)="deleteBloodTest(test.id!)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Results -->
+    <div *ngIf="activeSubTab === 'lab'" class="tab-panel">
+      <div class="panel-header">
+        <h3><i class="fas fa-vial"></i> Laboratory Results</h3>
+        <div class="header-actions">
+          <button class="btn-ocr" (click)="openOcrModal('lab')" title="Scan document with OCR">
+            <i class="fas fa-camera"></i> Scan Document
+          </button>
+          <button class="btn-add" (click)="openLabResultModal()">
+            <i class="fas fa-plus"></i> Add Lab Result
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="labResults.length === 0" class="empty-state">
+        <i class="fas fa-vial"></i>
+        <p>No lab results recorded</p>
+      </div>
+
+      <div class="records-grid">
+        <div *ngFor="let result of labResults" class="record-card">
+          <div class="card-header">
+            <div>
+              <h4>{{ result.testName }}</h4>
+              <span class="date">{{ result.testDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <span class="badge" [class.abnormal]="result.abnormal">
+              {{ result.result || 'Pending' }}
+            </span>
+          </div>
+          <div class="card-body">
+            <p><strong>Type:</strong> {{ result.testType }}</p>
+            <p *ngIf="result.specimenType"><strong>Specimen:</strong> {{ result.specimenType }}</p>
+            <p *ngIf="result.findings"><strong>Findings:</strong> {{ result.findings }}</p>
+            <p *ngIf="result.details"><strong>Details:</strong> {{ result.details }}</p>
+            <p *ngIf="result.laboratoryName"><strong>Laboratory:</strong> {{ result.laboratoryName }}</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn-edit" (click)="openLabResultModal(result)">Edit</button>
+            <button class="btn-delete" (click)="deleteLabResult(result.id!)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medical Imaging -->
+    <div *ngIf="activeSubTab === 'imaging'" class="tab-panel">
+      <div class="panel-header">
+        <h3><i class="fas fa-x-ray"></i> Medical Imaging</h3>
+        <div class="header-actions">
+          <button class="btn-ocr" (click)="openOcrModal('imaging')" title="Scan document with OCR">
+            <i class="fas fa-camera"></i> Scan Document
+          </button>
+          <button class="btn-add" (click)="openImagingModal()">
+            <i class="fas fa-plus"></i> Add Imaging
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="medicalImagings.length === 0" class="empty-state">
+        <i class="fas fa-x-ray"></i>
+        <p>No imaging records</p>
+      </div>
+
+      <div class="records-grid">
+        <div *ngFor="let imaging of medicalImagings" class="record-card">
+          <div class="card-header">
+            <div>
+              <h4>{{ imaging.imagingType }} - {{ imaging.bodyPart }}</h4>
+              <span class="date">{{ imaging.imagingDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="badges">
+              <span class="badge" [class.abnormal]="imaging.abnormal">
+                {{ imaging.abnormal ? 'Abnormal' : 'Normal' }}
+              </span>
+              <span class="badge urgency" [class]="'urgency-' + imaging.urgencyLevel?.toLowerCase()">
+                {{ imaging.urgencyLevel || 'NORMAL' }}
+              </span>
+              <span class="badge status" [class]="'status-' + imaging.status?.toLowerCase()">
+                {{ imaging.status || 'PENDING' }}
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            <p *ngIf="imaging.indication"><strong>Indication:</strong> {{ imaging.indication }}</p>
+            <p *ngIf="imaging.findings"><strong>Findings:</strong> {{ imaging.findings }}</p>
+            <p *ngIf="imaging.impression"><strong>Impression:</strong> {{ imaging.impression }}</p>
+            <p *ngIf="imaging.recommendation"><strong>Recommendation:</strong> {{ imaging.recommendation }}</p>
+            <p *ngIf="imaging.performedBy"><strong>Performed By:</strong> {{ imaging.performedBy }}</p>
+            <p *ngIf="imaging.radiologistName"><strong>Radiologist:</strong> {{ imaging.radiologistName }}</p>
+            <p *ngIf="imaging.facilityName"><strong>Facility:</strong> {{ imaging.facilityName }}</p>
+            <p *ngIf="imaging.followUpRequired" class="follow-up">
+              <strong><i class="fas fa-calendar-check"></i> Follow-up Required:</strong> 
+              {{ imaging.followUpDate | date:'dd/MM/yyyy' }}
+            </p>
+            
+            <!-- Display attached files -->
+            <div class="attached-files" *ngIf="hasAttachments(imaging)">
+              <strong><i class="fas fa-paperclip"></i> Attachments:</strong>
+              <div class="file-chips">
+                <span class="file-chip" *ngFor="let url of imaging.imageUrls">
+                  <i class="fas fa-file-image"></i> Image
+                </span>
+                <span class="file-chip" *ngFor="let url of imaging.documentUrls">
+                  <i class="fas fa-file-pdf"></i> PDF
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-edit" (click)="openImagingModal(imaging)">Edit</button>
+            <button class="btn-delete" (click)="deleteImaging(imaging.id!)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparative History -->
+    <div *ngIf="activeSubTab === 'history'" class="tab-panel">
+      <div class="panel-header">
+        <h3><i class="fas fa-chart-line"></i> Comparative History</h3>
+      </div>
+
+      <div class="history-filters">
+        <div class="filter-group">
+          <label>Examination Type</label>
+          <select class="form-control" [(ngModel)]="historyFilter" (change)="filterHistory()">
+            <option value="all">All Examinations</option>
+            <option value="blood">Blood Tests</option>
+            <option value="lab">Lab Results</option>
+            <option value="imaging">Medical Imaging</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date Range</label>
+          <select class="form-control" [(ngModel)]="dateRange" (change)="filterHistory()">
+            <option value="all">All Time</option>
+            <option value="week">Last Week</option>
+            <option value="month">Last Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="6months">Last 6 Months</option>
+            <option value="year">Last Year</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="filteredHistory.length === 0" class="empty-state">
+        <i class="fas fa-chart-line"></i>
+        <p>No examination history found</p>
+        <small>Add blood tests, lab results, or medical imaging to see comparative history</small>
+      </div>
+
+      <div class="timeline" *ngIf="filteredHistory.length > 0">
+        <div class="timeline-item" *ngFor="let item of filteredHistory">
+          <div class="timeline-marker" [class]="'marker-' + item.type">
+            <i class="fas" 
+               [class.fa-tint]="item.type === 'blood'"
+               [class.fa-vial]="item.type === 'lab'"
+               [class.fa-x-ray]="item.type === 'imaging'"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div>
+                <h4>{{ item.title }}</h4>
+                <span class="timeline-date">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <span class="badge" [class.abnormal]="item.abnormal">
+                {{ item.abnormal ? 'Abnormal' : 'Normal' }}
+              </span>
+            </div>
+            <div class="timeline-body">
+              <p *ngIf="item.type === 'blood'">
+                <strong>Test Type:</strong> {{ item.details.testType }}<br>
+                <span *ngIf="item.details.laboratoryName"><strong>Laboratory:</strong> {{ item.details.laboratoryName }}</span>
+              </p>
+              <p *ngIf="item.type === 'lab'">
+                <strong>Test:</strong> {{ item.details.testName }}<br>
+                <strong>Result:</strong> {{ item.details.result }}<br>
+                <span *ngIf="item.details.findings"><strong>Findings:</strong> {{ item.details.findings }}</span>
+              </p>
+              <p *ngIf="item.type === 'imaging'">
+                <strong>Type:</strong> {{ item.details.imagingType }} - {{ item.details.bodyPart }}<br>
+                <span *ngIf="item.details.findings"><strong>Findings:</strong> {{ item.details.findings }}</span><br>
+                <span *ngIf="item.details.impression"><strong>Impression:</strong> {{ item.details.impression }}</span>
+              </p>
+              <p *ngIf="item.details.interpretation || item.details.notes" class="notes">
+                <strong>Notes:</strong> {{ item.details.interpretation || item.details.notes }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Statistics -->
+      <div class="history-summary" *ngIf="filteredHistory.length > 0">
+        <h4><i class="fas fa-chart-bar"></i> Summary Statistics</h4>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-icon blood">
+              <i class="fas fa-tint"></i>
+            </div>
+            <div class="summary-info">
+              <span class="summary-value">{{ getCountByType('blood') }}</span>
+              <span class="summary-label">Blood Tests</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon lab">
+              <i class="fas fa-vial"></i>
+            </div>
+            <div class="summary-info">
+              <span class="summary-value">{{ getCountByType('lab') }}</span>
+              <span class="summary-label">Lab Results</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon imaging">
+              <i class="fas fa-x-ray"></i>
+            </div>
+            <div class="summary-info">
+              <span class="summary-value">{{ getCountByType('imaging') }}</span>
+              <span class="summary-label">Medical Imaging</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon abnormal">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="summary-info">
+              <span class="summary-value">{{ getAbnormalCount() }}</span>
+              <span class="summary-label">Abnormal Results</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blood Test Modal -->
+<div *ngIf="showBloodTestModal" class="modal-overlay" (click)="showBloodTestModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingBloodTest ? 'Edit' : 'Add' }} Blood Test</h2>
+      <button class="btn-close" (click)="showBloodTestModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="bloodTestForm">
+        <div class="form-group">
+          <label>Test Date *</label>
+          <input type="datetime-local" class="form-control" formControlName="testDate">
+        </div>
+        <div class="form-group">
+          <label>Test Type *</label>
+          <select class="form-control" formControlName="testType">
+            <option value="CBC">Complete Blood Count (CBC)</option>
+            <option value="METABOLIC_PANEL">Metabolic Panel</option>
+            <option value="KIDNEY_FUNCTION">Kidney Function</option>
+            <option value="LIVER_FUNCTION">Liver Function</option>
+            <option value="ELECTROLYTES">Electrolytes</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Laboratory Name</label>
+          <input type="text" class="form-control" formControlName="laboratoryName">
+        </div>
+        <div class="form-group">
+          <label>Interpretation</label>
+          <textarea class="form-control" formControlName="interpretation" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea class="form-control" formControlName="notes" rows="2"></textarea>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" formControlName="abnormal" id="abnormalBlood">
+          <label class="form-check-label" for="abnormalBlood">Mark as Abnormal</label>
+        </div>
+        
+        <!-- Valeurs biologiques -->
+        <div class="form-group" style="margin-top:12px">
+          <label><strong>Biological Values (mg/dL or mEq/L)</strong></label>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Creatinine (mg/dL)</label>
+              <input type="number" step="0.01" class="form-control" formControlName="creatinine" placeholder="e.g. 0.8">
+            </div>
+            <div class="form-group">
+              <label>Urea (mg/dL)</label>
+              <input type="number" step="0.1" class="form-control" formControlName="urea" placeholder="e.g. 15">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Potassium (mEq/L)</label>
+              <input type="number" step="0.1" class="form-control" formControlName="potassium" placeholder="e.g. 4.5">
+            </div>
+            <div class="form-group">
+              <label>Sodium (mEq/L)</label>
+              <input type="number" step="0.1" class="form-control" formControlName="sodium" placeholder="e.g. 140">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Hemoglobin (g/dL)</label>
+            <input type="number" step="0.1" class="form-control" formControlName="hemoglobin" placeholder="e.g. 12.5">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showBloodTestModal = false">Cancel</button>
+      <button class="btn-primary" (click)="saveBloodTest()" [disabled]="bloodTestForm.invalid">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lab Result Modal -->
+<div *ngIf="showLabResultModal" class="modal-overlay" (click)="showLabResultModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingLabResult ? 'Edit' : 'Add' }} Lab Result</h2>
+      <button class="btn-close" (click)="showLabResultModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="labResultForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Test Date *</label>
+            <input type="datetime-local" class="form-control" formControlName="testDate">
+          </div>
+          <div class="form-group">
+            <label>Test Type *</label>
+            <select class="form-control" formControlName="testType">
+              <option value="URINALYSIS">Urinalysis</option>
+              <option value="CULTURE">Culture</option>
+              <option value="BIOPSY">Biopsy</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Test Name *</label>
+          <input type="text" class="form-control" formControlName="testName">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Result</label>
+            <select class="form-control" formControlName="result">
+              <option value="NORMAL">Normal</option>
+              <option value="ABNORMAL">Abnormal</option>
+              <option value="POSITIVE">Positive</option>
+              <option value="NEGATIVE">Negative</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Specimen Type</label>
+            <input type="text" class="form-control" formControlName="specimenType" placeholder="e.g., Urine, Blood">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Findings</label>
+          <textarea class="form-control" formControlName="findings" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Details</label>
+          <textarea class="form-control" formControlName="details" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Laboratory Name</label>
+          <input type="text" class="form-control" formControlName="laboratoryName">
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea class="form-control" formControlName="notes" rows="2"></textarea>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" formControlName="abnormal" id="abnormalLab">
+          <label class="form-check-label" for="abnormalLab">Mark as Abnormal</label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showLabResultModal = false">Cancel</button>
+      <button class="btn-primary" (click)="saveLabResult()" [disabled]="labResultForm.invalid">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Medical Imaging Modal -->
+<div *ngIf="showImagingModal" class="modal-overlay" (click)="showImagingModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingImaging ? 'Edit' : 'Add' }} Medical Imaging</h2>
+      <button class="btn-close" (click)="showImagingModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="imagingForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Imaging Date *</label>
+            <input type="datetime-local" class="form-control" formControlName="imagingDate">
+          </div>
+          <div class="form-group">
+            <label>Imaging Type *</label>
+            <select class="form-control" formControlName="imagingType">
+              <option value="XRAY">X-Ray</option>
+              <option value="ULTRASOUND">Ultrasound</option>
+              <option value="CT_SCAN">CT Scan</option>
+              <option value="MRI">MRI</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Body Part *</label>
+          <input type="text" class="form-control" formControlName="bodyPart" placeholder="e.g., Chest, Abdomen">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Urgency Level</label>
+            <select class="form-control" formControlName="urgencyLevel">
+              <option value="NORMAL">Normal</option>
+              <option value="URGENT">Urgent</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" formControlName="status">
+              <option value="PENDING">Pending</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="REVIEWED">Reviewed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Indication</label>
+          <input type="text" class="form-control" formControlName="indication" placeholder="Reason for imaging">
+        </div>
+        <div class="form-group">
+          <label>Findings</label>
+          <textarea class="form-control" formControlName="findings" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Impression</label>
+          <textarea class="form-control" formControlName="impression" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Recommendation</label>
+          <textarea class="form-control" formControlName="recommendation" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Performed By</label>
+            <input type="text" class="form-control" formControlName="performedBy" placeholder="Who performed the exam">
+          </div>
+          <div class="form-group">
+            <label>Radiologist Name</label>
+            <input type="text" class="form-control" formControlName="radiologistName">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Facility Name</label>
+          <input type="text" class="form-control" formControlName="facilityName">
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea class="form-control" formControlName="notes" rows="2"></textarea>
+        </div>
+        <div class="form-check-group">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" formControlName="abnormal" id="abnormalImaging">
+            <label class="form-check-label" for="abnormalImaging">Mark as Abnormal</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" formControlName="followUpRequired" id="followUpRequired">
+            <label class="form-check-label" for="followUpRequired">Follow-up Required</label>
+          </div>
+        </div>
+        <div class="form-group" *ngIf="imagingForm.get('followUpRequired')?.value">
+          <label>Follow-up Date</label>
+          <input type="date" class="form-control" formControlName="followUpDate">
+        </div>
+        <div class="form-group">
+          <label>Upload Image/PDF</label>
+          <input type="file" class="form-control" accept="image/*,.pdf" multiple (change)="onFileSelect($event)">
+          <small class="form-text">You can upload images or PDF documents</small>
+          
+          <!-- Display uploaded files -->
+          <div class="uploaded-files" *ngIf="uploadedFileUrls.length > 0">
+            <div class="file-preview" *ngFor="let url of uploadedFileUrls; let i = index">
+              <div class="file-info">
+                <i class="fas" [class.fa-file-image]="isImageFile(url)" [class.fa-file-pdf]="!isImageFile(url)"></i>
+                <span>{{ getFileName(url) }}</span>
+              </div>
+              <button type="button" class="btn-remove-file" (click)="removeFile(i)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showImagingModal = false">Cancel</button>
+      <button class="btn-primary" (click)="saveImaging()" [disabled]="imagingForm.invalid">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- OCR Modal -->
+<div class="modal-overlay" *ngIf="showOcrModal" (click)="closeOcrModal()">
+  <div class="modal-content ocr-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fas fa-camera"></i> 
+        Scan {{ ocrType === 'lab' ? 'Laboratory' : 'Imaging' }} Document
+      </h3>
+      <button class="close-btn" (click)="closeOcrModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="ocr-upload-section">
+        <div class="upload-area">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Upload a document (Image or PDF)</p>
+          <input 
+            type="file" 
+            accept="image/*,application/pdf" 
+            (change)="onOcrFileSelect($event)"
+            id="ocrFileInput"
+          />
+          <label for="ocrFileInput" class="btn-upload">
+            <i class="fas fa-file-upload"></i> Choose File
+          </label>
+        </div>
+
+        <div class="ocr-info">
+          <h4><i class="fas fa-info-circle"></i> OCR Information</h4>
+          <ul>
+            <li><i class="fas fa-check"></i> Supports images (JPG, PNG) and PDF files</li>
+            <li><i class="fas fa-check"></i> Works offline - no internet required</li>
+            <li><i class="fas fa-check"></i> Automatically extracts text and values</li>
+            <li><i class="fas fa-check"></i> Multi-language support (English & French)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div *ngIf="ocrProcessing" class="ocr-processing">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Processing document... This may take a few seconds.</p>
+      </div>
+
+      <div *ngIf="ocrResult && !ocrProcessing" class="ocr-result">
+        <div class="result-header">
+          <h4><i class="fas fa-check-circle"></i> OCR Results</h4>
+        </div>
+
+        <!-- Lab Results OCR -->
+        <div *ngIf="ocrType === 'lab' && isLabResultOCR(ocrResult)" class="lab-ocr-result">
+          <div class="extracted-info">
+            <div class="info-item" *ngIf="ocrResult.testDate">
+              <strong>Date:</strong> {{ ocrResult.testDate }}
+            </div>
+            <div class="info-item" *ngIf="ocrResult.laboratoryName">
+              <strong>Laboratory:</strong> {{ ocrResult.laboratoryName }}
+            </div>
+          </div>
+
+          <div class="extracted-values" *ngIf="ocrResult.extractedValues && Object.keys(ocrResult.extractedValues).length > 0">
+            <h5>Extracted Values:</h5>
+            <div class="values-grid">
+              <div *ngFor="let item of ocrResult.extractedValues | keyvalue" class="value-item">
+                <span class="value-label">{{ item.key }}:</span>
+                <span class="value-data">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="raw-text">
+            <h5>Raw Text:</h5>
+            <pre>{{ ocrResult.rawText }}</pre>
+          </div>
+        </div>
+
+        <!-- Imaging Results OCR -->
+        <div *ngIf="ocrType === 'imaging' && isImagingResultOCR(ocrResult)" class="imaging-ocr-result">
+          <div class="extracted-info">
+            <div class="info-item" *ngIf="ocrResult.imagingType">
+              <strong>Type:</strong> {{ ocrResult.imagingType }}
+            </div>
+            <div class="info-item" *ngIf="ocrResult.imagingDate">
+              <strong>Date:</strong> {{ ocrResult.imagingDate }}
+            </div>
+            <div class="info-item" *ngIf="ocrResult.radiologistName">
+              <strong>Radiologist:</strong> {{ ocrResult.radiologistName }}
+            </div>
+          </div>
+
+          <div class="extracted-section" *ngIf="ocrResult.findings">
+            <h5>Findings:</h5>
+            <p>{{ ocrResult.findings }}</p>
+          </div>
+
+          <div class="extracted-section" *ngIf="ocrResult.impression">
+            <h5>Impression:</h5>
+            <p>{{ ocrResult.impression }}</p>
+          </div>
+
+          <div class="extracted-section" *ngIf="ocrResult.recommendation">
+            <h5>Recommendation:</h5>
+            <p>{{ ocrResult.recommendation }}</p>
+          </div>
+
+          <div class="raw-text">
+            <h5>Raw Text:</h5>
+            <pre>{{ ocrResult.rawText }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" *ngIf="ocrResult && !ocrProcessing">
+      <button class="btn-secondary" (click)="closeOcrModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button class="btn-primary" (click)="useOcrResult()">
+        <i class="fas fa-check"></i> Use This Data
+      </button>
+    </div>
+  </div>
+</div>

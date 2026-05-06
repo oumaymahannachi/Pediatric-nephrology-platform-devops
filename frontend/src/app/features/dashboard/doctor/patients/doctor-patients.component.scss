@@ -1,0 +1,17 @@
+@use 'dashboard-template' as tpl;
+@include tpl.dashboard-base;
+
+.patient-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 25px rgba(69, 90, 100, 0.15);
+  }
+}
+
+.loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e2e5e8; border-top-color: #4099ff; border-radius: 50%;
+  margin: 0 auto; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,63 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: prescription-service
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://PediaLink:PediaLink@pedialink.0d8a5qd.mongodb.net/pedialink?retryWrites=true&w=majority}
+
+app:
+  jwt:
+    secret: PediaLinkSuperSecretKeyForJwtToken2024MustBeAtLeast256BitsLong!!
+    expiration-ms: 86400000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    tn.pedialink.prescription: DEBUG
+
+# Translation Service Configuration
+translation:
+  # Provider options: libretranslate, mymemory, simulated
+  # libretranslate: FREE, open source, good quality (RECOMMENDED)
+  # mymemory: FREE with 10k words/day limit
+  # simulated: Offline, limited vocabulary
+  provider: ${TRANSLATION_PROVIDER:libretranslate}
+  
+  libretranslate:
+    # Public API (FREE, 20 requests/minute)
+    url: ${LIBRETRANSLATE_URL:https://libretranslate.com/translate}
+    # For production, host your own instance:
+    # docker run -d -p 5000:5000 libretranslate/libretranslate
+    # Then use: http://localhost:5000/translate
+  
+  mymemory:
+    url: ${MYMEMORY_URL:https://api.mymemory.translated.net/get}
+    email: ${MYMEMORY_EMAIL:}  # Optional: increases limit to 100k words/day
+
+# Google Cloud APIs Configuration (DEPRECATED - NOT FREE)
+google:
+  vision:
+    api:
+      key: ${GOOGLE_VISION_API_KEY:AIzaSyDcgWtfgr4F2ZLSUAiKtyEaeJ9CDbvmxfs}
+  
+  translate:
+    api:
+      key: ${GOOGLE_TRANSLATE_API_KEY:}
+      # Google Translate is NOT FREE - use LibreTranslate instead
+
+# File Upload Configuration
+spring.servlet.multipart:
+  enabled: true
+  max-file-size: 5MB
+  max-request-size: 5MB

@@ -1,0 +1,239 @@
+<div class="education-container">
+
+  <!-- Header -->
+  <div class="edu-header">
+    <div class="edu-header-content">
+      <div class="edu-title">
+        <span class="edu-icon">🎓</span>
+        <div>
+          <h1>Espace Éducatif</h1>
+          <p>Comprendre et gérer la maladie de votre enfant</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Tip -->
+    <div class="daily-tip" *ngIf="dailyTip">
+      <span class="tip-icon">{{ dailyTip.icon }}</span>
+      <div class="tip-content">
+        <strong>Conseil du jour : {{ dailyTip.title }}</strong>
+        <p>{{ dailyTip.message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="edu-tabs">
+    <button [class.active]="activeTab === 'home'" (click)="activeTab = 'home'">🏠 Accueil</button>
+    <button [class.active]="activeTab === 'articles'" (click)="activeTab = 'articles'">📖 Articles</button>
+    <button [class.active]="activeTab === 'videos'" (click)="activeTab = 'videos'">🎬 Vidéos</button>
+    <button [class.active]="activeTab === 'quiz'" (click)="activeTab = 'quiz'">🧠 Quiz</button>
+  </div>
+
+  <!-- ===== HOME TAB ===== -->
+  <div *ngIf="activeTab === 'home'" class="tab-content">
+
+    <!-- Categories -->
+    <h2 class="section-title">📚 Choisissez un thème</h2>
+    <div class="categories-grid">
+      <div *ngFor="let cat of categories" class="category-card"
+        [style.border-color]="cat.color"
+        (click)="selectedCategory = cat.key; activeTab = 'articles'">
+        <span class="cat-icon">{{ cat.icon }}</span>
+        <span class="cat-label">{{ cat.label }}</span>
+        <span class="cat-arrow">→</span>
+      </div>
+    </div>
+
+    <!-- Featured Articles -->
+    <h2 class="section-title">⭐ Articles essentiels</h2>
+    <div class="articles-grid">
+      <div *ngFor="let article of filteredArticles.slice(0, 3)" class="article-card"
+        (click)="openArticle(article)">
+        <div class="article-icon">{{ article.icon }}</div>
+        <div class="article-info">
+          <h3>{{ article.simplifiedTitle }}</h3>
+          <p class="article-medical">{{ article.title }}</p>
+          <div class="article-meta">
+            <span class="read-time">⏱ {{ article.readTime }} min</span>
+            <span class="cat-badge" [style.background]="getCategoryInfo(article.category).color">
+              {{ getCategoryInfo(article.category).label }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Quiz CTA -->
+    <div class="quiz-cta" (click)="activeTab = 'quiz'">
+      <span>🧠</span>
+      <div>
+        <strong>Testez vos connaissances</strong>
+        <p>{{ QUIZ_QUESTIONS.length }} questions sur la maladie rénale</p>
+      </div>
+      <span class="cta-arrow">→</span>
+    </div>
+  </div>
+
+  <!-- ===== ARTICLES TAB ===== -->
+  <div *ngIf="activeTab === 'articles'" class="tab-content">
+
+    <!-- Search + Filter -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher un article...">
+      </div>
+      <div class="category-filters">
+        <button [class.active]="selectedCategory === 'all'" (click)="selectedCategory = 'all'">Tous</button>
+        <button *ngFor="let cat of categories"
+          [class.active]="selectedCategory === cat.key"
+          [style.border-color]="selectedCategory === cat.key ? cat.color : ''"
+          (click)="selectedCategory = cat.key">
+          {{ cat.icon }} {{ cat.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="articles-list">
+      <div *ngFor="let article of filteredArticles" class="article-card-full"
+        (click)="openArticle(article)">
+        <div class="article-icon-lg">{{ article.icon }}</div>
+        <div class="article-body">
+          <h3>{{ article.simplifiedTitle }}</h3>
+          <p class="article-medical-sm">Terme médical : {{ article.title }}</p>
+          <div class="article-tags">
+            <span *ngFor="let tag of article.tags" class="tag">#{{ tag }}</span>
+          </div>
+        </div>
+        <div class="article-right">
+          <span class="read-time-badge">⏱ {{ article.readTime }} min</span>
+          <span class="read-more">Lire →</span>
+        </div>
+      </div>
+      <div *ngIf="filteredArticles.length === 0" class="empty-state">
+        Aucun article trouvé
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VIDEOS TAB ===== -->
+  <div *ngIf="activeTab === 'videos'" class="tab-content">
+    <div class="category-filters">
+      <button [class.active]="selectedCategory === 'all'" (click)="selectedCategory = 'all'">Tous</button>
+      <button *ngFor="let cat of categories"
+        [class.active]="selectedCategory === cat.key"
+        (click)="selectedCategory = cat.key">
+        {{ cat.icon }} {{ cat.label }}
+      </button>
+    </div>
+
+    <div class="videos-grid">
+      <div *ngFor="let video of filteredVideos" class="video-card" (click)="openVideo(video)">
+        <div class="video-thumbnail">
+          <span class="video-emoji">{{ video.thumbnail }}</span>
+          <div class="play-btn">▶</div>
+          <span class="video-duration">{{ video.duration }}</span>
+        </div>
+        <div class="video-info">
+          <h3>{{ video.title }}</h3>
+          <p>{{ video.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ TAB ===== -->
+  <div *ngIf="activeTab === 'quiz'" class="tab-content">
+
+    <!-- Quiz Completed -->
+    <div *ngIf="quizCompleted" class="quiz-result">
+      <div class="score-circle" [style.border-color]="getScoreColor()">
+        <span class="score-number" [style.color]="getScoreColor()">{{ quizScore }}/{{ QUIZ_QUESTIONS.length }}</span>
+        <span class="score-label">Score</span>
+      </div>
+      <h2>{{ getScoreMessage() }}</h2>
+      <div class="score-details">
+        <div *ngFor="let q of QUIZ_QUESTIONS; let i = index" class="score-item"
+          [class.correct]="quizAnswers[i] === q.correctIndex"
+          [class.wrong]="quizAnswers[i] !== q.correctIndex">
+          <span>{{ quizAnswers[i] === q.correctIndex ? '✅' : '❌' }}</span>
+          <span>{{ q.question }}</span>
+        </div>
+      </div>
+      <button class="btn-restart" (click)="restartQuiz()">🔄 Recommencer</button>
+    </div>
+
+    <!-- Quiz In Progress -->
+    <div *ngIf="!quizCompleted" class="quiz-container">
+      <div class="quiz-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="((currentQuestionIndex + 1) / QUIZ_QUESTIONS.length) * 100"></div>
+        </div>
+        <span>Question {{ currentQuestionIndex + 1 }} / {{ QUIZ_QUESTIONS.length }}</span>
+      </div>
+
+      <div class="quiz-card">
+        <div class="question-category">
+          {{ getCategoryInfo(currentQuestion.category).icon }} {{ getCategoryInfo(currentQuestion.category).label }}
+        </div>
+        <h2 class="question-text">{{ currentQuestion.question }}</h2>
+
+        <div class="options-list">
+          <button *ngFor="let option of currentQuestion.options; let i = index"
+            class="option-btn"
+            [class.selected]="selectedAnswer === i"
+            [class.correct]="showExplanation && isAnswerCorrect(i)"
+            [class.wrong]="showExplanation && isAnswerWrong(i)"
+            (click)="selectAnswer(i)">
+            <span class="option-letter">{{ ['A', 'B', 'C', 'D'][i] }}</span>
+            <span>{{ option }}</span>
+            <span *ngIf="showExplanation && isAnswerCorrect(i)" class="option-check">✅</span>
+            <span *ngIf="showExplanation && isAnswerWrong(i)" class="option-check">❌</span>
+          </button>
+        </div>
+
+        <!-- Explanation -->
+        <div *ngIf="showExplanation" class="explanation-box"
+          [class.correct-exp]="selectedAnswer === currentQuestion.correctIndex"
+          [class.wrong-exp]="selectedAnswer !== currentQuestion.correctIndex">
+          <strong>{{ selectedAnswer === currentQuestion.correctIndex ? '✅ Correct !' : '❌ Incorrect' }}</strong>
+          <p>{{ currentQuestion.explanation }}</p>
+        </div>
+
+        <div class="quiz-nav">
+          <button class="btn-prev" (click)="prevQuestion()" [disabled]="currentQuestionIndex === 0">← Précédent</button>
+          <button class="btn-next" (click)="nextQuestion()" [disabled]="!showExplanation">
+            {{ currentQuestionIndex === QUIZ_QUESTIONS.length - 1 ? 'Terminer 🏁' : 'Suivant →' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Article Modal -->
+<div class="modal-overlay" *ngIf="selectedArticle" (click)="closeArticle()">
+  <div class="article-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>{{ selectedArticle.icon }}</span>
+        <div>
+          <h2>{{ selectedArticle.simplifiedTitle }}</h2>
+          <p class="modal-subtitle">{{ selectedArticle.title }}</p>
+        </div>
+      </div>
+      <button class="btn-close" (click)="closeArticle()">✕</button>
+    </div>
+    <div class="modal-body" [innerHTML]="selectedArticle.content"></div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="modal-overlay" *ngIf="selectedVideo" (click)="closeVideo()">
+  <div class="video-modal" (click)="$event.stopPropagation()">
+    <button class="btn-close-video" (click)="closeVideo()">✕</button>
+    <iframe [src]="selectedVideo" allowfullscreen class="video-iframe"></iframe>
+  </div>
+</div>

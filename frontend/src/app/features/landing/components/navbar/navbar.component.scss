@@ -1,0 +1,142 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: $space-4 0;
+  transition: all $transition-base;
+  background: transparent;
+
+  &.scrolled {
+    @include glass;
+    box-shadow: $shadow-sm;
+    padding: $space-2 0;
+  }
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    text-decoration: none;
+  }
+
+  &__logo {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  &__links {
+    display: none;
+    list-style: none;
+    gap: $space-8;
+    align-items: center;
+
+    @include respond(lg) {
+      display: flex;
+    }
+  }
+
+  &__link {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $gray-600;
+    text-decoration: none;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+
+  &__actions {
+    display: none;
+    align-items: center;
+    gap: $space-3;
+
+    @include respond(lg) {
+      display: flex;
+    }
+  }
+
+  &__hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: $space-2;
+
+    @include respond(lg) {
+      display: none;
+    }
+
+    span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: $gray-700;
+      border-radius: 2px;
+      transition: all $transition-base;
+
+      &.open:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+      &.open:nth-child(2) {
+        opacity: 0;
+      }
+      &.open:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+    }
+  }
+
+  &__mobile {
+    display: none;
+    flex-direction: column;
+    padding: $space-6;
+    background: $white;
+    border-top: 1px solid $gray-200;
+    box-shadow: $shadow-lg;
+
+    &.active {
+      display: flex;
+
+      @include respond(lg) {
+        display: none;
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid $gray-200;
+      margin: $space-3 0;
+    }
+  }
+
+  &__mobile-link {
+    padding: $space-3 0;
+    font-size: $font-size-base;
+    font-weight: 500;
+    color: $gray-700;
+    text-decoration: none;
+
+    &:hover { color: $primary; }
+  }
+
+  &__mobile-cta {
+    margin-top: $space-3;
+    text-align: center;
+  }
+}

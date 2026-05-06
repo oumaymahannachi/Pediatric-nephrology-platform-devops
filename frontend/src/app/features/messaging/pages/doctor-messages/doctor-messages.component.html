@@ -1,0 +1,86 @@
+<div class="messages-container">
+  <!-- Header -->
+  <div class="messages-header">
+    <h1><i class="fas fa-comments"></i> Patient Messages</h1>
+    <button class="btn-refresh" (click)="refreshConversations()" title="Refresh">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+
+  <div class="messages-content">
+    <!-- Sidebar - Conversations List -->
+    <div class="conversations-sidebar">
+      <!-- Search -->
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search conversations..." 
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+        />
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-conversations">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Loading conversations...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="loadConversations()">Retry</button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && !error && filteredConversations.length === 0" class="empty-conversations">
+        <i class="fas fa-inbox"></i>
+        <p>No conversations yet</p>
+        <small>Patients will appear here when they message you</small>
+      </div>
+
+      <!-- Conversations List -->
+      <div class="conversations-list" *ngIf="!loading && !error && filteredConversations.length > 0">
+        <div 
+          *ngFor="let conversation of filteredConversations"
+          class="conversation-item"
+          [class.active]="isConversationSelected(conversation)"
+          (click)="selectConversation(conversation)">
+          
+          <div class="conversation-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          
+          <div class="conversation-info">
+            <div class="conversation-header">
+              <h3>{{ getPatientName(conversation) }}</h3>
+              <span class="unread-badge" *ngIf="conversation.doctorUnreadCount > 0">
+                {{ conversation.doctorUnreadCount }}
+              </span>
+              <span class="conversation-time">{{ getConversationTime(conversation) }}</span>
+            </div>
+            <p class="conversation-preview">{{ getConversationPreview(conversation) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+      <div *ngIf="!selectedConversation" class="no-conversation-selected">
+        <i class="fas fa-comments"></i>
+        <h2>Select a conversation</h2>
+        <p>Choose a conversation from the list to start chatting</p>
+      </div>
+
+      <app-chat-window
+        *ngIf="selectedConversation"
+        [conversation]="selectedConversation"
+        [currentUserId]="currentUserId"
+        [currentUserType]="currentUserType">
+      </app-chat-window>
+    </div>
+  </div>
+</div>

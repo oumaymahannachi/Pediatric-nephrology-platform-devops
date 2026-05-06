@@ -1,0 +1,111 @@
+<div class="adherence-container">
+  <div class="header">
+    <h2>📊 Suivi d'Observance</h2>
+    <button class="btn btn-primary" (click)="showForm = !showForm">
+      {{ showForm ? 'Annuler' : '+ Enregistrer une prise' }}
+    </button>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-card" *ngIf="stats">
+    <h3>Statistiques ({{ stats.periode }})</h3>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">{{ stats.tauxAdherence }}%</div>
+        <div class="stat-label">Taux d'observance</div>
+        <span class="badge" [class]="'badge-' + getStatutClass(stats.niveau)">
+          {{ stats.niveau }}
+        </span>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ stats.totalPris }}</div>
+        <div class="stat-label">Prises effectuées</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ stats.totalOublie }}</div>
+        <div class="stat-label">Prises oubliées</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ stats.totalPrevu }}</div>
+        <div class="stat-label">Total prévu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulaire -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>Enregistrer une prise</h3>
+    <form (ngSubmit)="submitLog()">
+      <div class="form-group">
+        <label>Prescription</label>
+        <select [(ngModel)]="formData.prescriptionId" name="prescriptionId" 
+                (change)="onPrescriptionChange()" required>
+          <option value="">Sélectionner une prescription</option>
+          <option *ngFor="let p of prescriptions" [value]="p.id">
+            {{ p.diagnostic }} - {{ p.datePrescription | date:'dd/MM/yyyy' }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Médicament</label>
+        <input type="text" [(ngModel)]="formData.medicamentNom" name="medicamentNom" required>
+      </div>
+
+      <div class="form-group">
+        <label>Date et heure de prise</label>
+        <input type="datetime-local" [(ngModel)]="formData.datePrise" name="datePrise" required>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="formData.prise" name="prise">
+          Médicament pris
+        </label>
+      </div>
+
+      <div class="form-group" *ngIf="!formData.prise">
+        <label>Raison de l'oubli</label>
+        <input type="text" [(ngModel)]="formData.raison" name="raison">
+      </div>
+
+      <div class="form-group">
+        <label>Effets secondaires</label>
+        <textarea [(ngModel)]="formData.effetsSecondaires" name="effetsSecondaires" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="formData.notes" name="notes" rows="2"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn btn-secondary" (click)="showForm = false">Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Historique -->
+  <div class="logs-card">
+    <h3>Historique des prises</h3>
+    <div class="logs-list">
+      <div class="log-item" *ngFor="let log of logs">
+        <div class="log-header">
+          <span class="log-date">{{ log.datePrise | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="badge" [class]="log.prise ? 'badge-success' : 'badge-danger'">
+            {{ log.prise ? '✓ Pris' : '✗ Oublié' }}
+          </span>
+        </div>
+        <div class="log-body">
+          <strong>{{ log.medicamentNom }}</strong>
+          <p *ngIf="log.raison" class="log-raison">Raison: {{ log.raison }}</p>
+          <p *ngIf="log.effetsSecondaires" class="log-effets">
+            ⚠️ Effets: {{ log.effetsSecondaires }}
+          </p>
+          <p *ngIf="log.notes" class="log-notes">{{ log.notes }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

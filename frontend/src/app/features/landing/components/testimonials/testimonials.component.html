@@ -1,0 +1,23 @@
+<section class="testimonials">
+  <div class="container text-center">
+    <span class="section-badge">Testimonials</span>
+    <h2 class="section-title">Loved by doctors & parents</h2>
+    <p class="section-subtitle">
+      See what healthcare professionals and families have to say about PediaLink.
+    </p>
+    <div class="testimonials__grid">
+      @for (t of testimonials; track t.name) {
+        <div class="testimonials__card">
+          <p class="testimonials__text">"{{ t.text }}"</p>
+          <div class="testimonials__author">
+            <span class="testimonials__avatar">{{ t.initials }}</span>
+            <div>
+              <strong class="testimonials__name">{{ t.name }}</strong>
+              <span class="testimonials__role">{{ t.role }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

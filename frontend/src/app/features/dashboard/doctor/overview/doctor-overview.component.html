@@ -1,0 +1,121 @@
+@if (loading) {
+  <div class="text-center py-5">
+    <div class="loading-spinner"></div>
+    <p class="text-muted mt-3">Loading dashboard...</p>
+  </div>
+} @else {
+  <!-- Stat Cards -->
+  <div class="row">
+    @for (card of cards; track card.title) {
+      <div class="col-md-6 col-xl-3">
+        <div class="card {{ card.background }} order-card">
+          <div class="card-body">
+            <h6 class="text-white">{{ card.title }}</h6>
+            <h2 class="text-end text-white">
+              <lucide-icon [name]="card.icon" [size]="28" class="float-start"></lucide-icon>
+              <span>{{ card.number }}</span>
+            </h2>
+            <p class="m-b-0">{{ card.text }}</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row">
+    <div class="col-xl-8 col-md-12">
+      <div class="card">
+        <div class="card-header"><h5>Activity Trend</h5></div>
+        <div class="card-body">
+          <apx-chart
+            [series]="activityChart.series!"
+            [chart]="activityChart.chart!"
+            [xaxis]="activityChart.xaxis!"
+            [yaxis]="activityChart.yaxis!"
+            [colors]="activityChart.colors!"
+            [fill]="activityChart.fill!"
+            [stroke]="activityChart.stroke!"
+            [dataLabels]="activityChart.dataLabels!"
+            [grid]="activityChart.grid!"
+            [tooltip]="activityChart.tooltip!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-md-12">
+      <div class="card">
+        <div class="card-header"><h5>Appointment Status</h5></div>
+        <div class="card-body">
+          <apx-chart
+            [series]="appointmentChart.series!"
+            [chart]="appointmentChart.chart!"
+            [labels]="appointmentChart.labels!"
+            [colors]="appointmentChart.colors!"
+            [legend]="appointmentChart.legend!"
+            [plotOptions]="appointmentChart.plotOptions!"
+            [dataLabels]="appointmentChart.dataLabels!"
+            [responsive]="appointmentChart.responsive!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Cards -->
+  <div class="row">
+    <div class="col-md-6 col-lg-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <lucide-icon name="baby" [size]="40" class="text-c-blue d-block icon-lg"></lucide-icon>
+          <h4 class="m-t-20"><span class="text-c-blue">{{ patients.length }}</span> Patients</h4>
+          <p class="m-b-20">Your patient list</p>
+          <a routerLink="/doctor/patients" class="btn btn-primary btn-sm btn-round">View All</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <lucide-icon name="calendar" [size]="40" class="text-c-green d-block icon-lg"></lucide-icon>
+          <h4 class="m-t-20"><span class="text-c-green">{{ appointments.length }}</span> Appointments</h4>
+          <p class="m-b-20">Your schedule overview</p>
+          <a routerLink="/doctor/appointments" class="btn btn-success btn-sm btn-round">Manage</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <lucide-icon name="file-text" [size]="40" class="text-c-purple d-block icon-lg"></lucide-icon>
+          <h4 class="m-t-20"><span class="text-c-purple">Prescriptions</span></h4>
+          <p class="m-b-20">Manage prescriptions</p>
+          <a routerLink="/doctor/prescriptions" class="btn btn-info btn-sm btn-round">View</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <lucide-icon name="flask-conical" [size]="40" class="text-c-yellow d-block icon-lg"></lucide-icon>
+          <h4 class="m-t-20"><span class="text-c-yellow">Lab Results</span></h4>
+          <p class="m-b-20">Manage lab results</p>
+          <a routerLink="/doctor/lab-results" class="btn btn-warning btn-sm btn-round">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6 col-lg-3">
+      <div class="card">
+        <div class="card-body text-center">
+          <lucide-icon name="clock" [size]="40" class="text-c-red d-block icon-lg"></lucide-icon>
+          <h4 class="m-t-20"><span class="text-c-red">{{ stats.pending }}</span> Pending</h4>
+          <p class="m-b-20">Awaiting your response</p>
+          <a routerLink="/doctor/appointments" class="btn btn-danger btn-sm btn-round">Review</a>
+        </div>
+      </div>
+    </div>
+  </div>
+}

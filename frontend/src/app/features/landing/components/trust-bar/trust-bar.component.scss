@@ -1,0 +1,35 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.trust-bar {
+  padding: $space-10 0;
+  background: $gray-50;
+  text-align: center;
+
+  &__label {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $gray-400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: $space-6;
+  }
+
+  &__logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: $space-8;
+  }
+
+  &__logo {
+    font-size: $font-size-sm;
+    color: $gray-400;
+    font-weight: 600;
+    opacity: 0.6;
+    transition: opacity $transition-base;
+
+    &:hover { opacity: 1; }
+  }
+}

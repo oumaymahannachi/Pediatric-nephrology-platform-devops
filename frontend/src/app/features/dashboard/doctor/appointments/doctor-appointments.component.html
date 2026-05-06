@@ -1,0 +1,442 @@
+<div class="appointments-container">
+  <!-- Alert -->
+  @if (alertMsg) {
+    <div class="alert" [class.alert-success]="alertType === 'success'" [class.alert-danger]="alertType === 'error'">
+      <lucide-icon [name]="alertType === 'success' ? 'check-circle' : 'alert-circle'" [size]="16"></lucide-icon>
+      {{ alertMsg }}
+      <button class="alert-close" (click)="alertMsg = ''"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2><lucide-icon name="calendar" [size]="28"></lucide-icon> Appointments Management</h2>
+      <p class="text-muted">Manage your appointments with patients</p>
+    </div>
+    @if (activeTab === 'all') {
+      <button class="btn btn-outline-primary view-toggle" (click)="toggleViewMode()">
+        <lucide-icon [name]="viewMode === 'grid' ? 'list' : 'grid'" [size]="18"></lucide-icon>
+        {{ viewMode === 'grid' ? 'List View' : 'Grid View' }}
+      </button>
+    }
+  </div>
+
+  <!-- Statistics -->
+  @if (activeTab === 'all' && !loading) {
+    <div class="stats-container">
+      <div class="stat-card stat-total">
+        <div class="stat-icon">
+          <lucide-icon name="calendar-days" [size]="24"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+      <div class="stat-card stat-pending">
+        <div class="stat-icon">
+          <lucide-icon name="clock" [size]="24"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.pending }}</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+      <div class="stat-card stat-accepted">
+        <div class="stat-icon">
+          <lucide-icon name="check-circle" [size]="24"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.accepted }}</div>
+          <div class="stat-label">Accepted</div>
+        </div>
+      </div>
+      <div class="stat-card stat-completed">
+        <div class="stat-icon">
+          <lucide-icon name="check-circle-2" [size]="24"></lucide-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.completed }}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+    </div>
+  }
+
+    @if (loading) {
+    <div class="text-center py-5">
+      <div class="loading-spinner"></div>
+      <p class="text-muted mt-3">Loading appointments...</p>
+    </div>
+  } @else {
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'" href="javascript:">
+          <lucide-icon name="calendar-days" [size]="16"></lucide-icon>
+          All Appointments
+          <span class="badge bg-secondary ms-2">{{ appointments.length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'" href="javascript:">
+          <lucide-icon name="clock" [size]="16"></lucide-icon>
+          Pending
+          @if (pendingAppointments.length > 0) {
+            <span class="badge bg-warning ms-2">{{ pendingAppointments.length }}</span>
+          }
+        </a>
+      </li>
+    </ul>
+
+    <!-- Search and Filters (only for "All" tab) -->
+    @if (activeTab === 'all') {
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <!-- Search bar -->
+            <div class="col-md-4">
+              <div class="search-box">
+                <lucide-icon name="search" [size]="18"></lucide-icon>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Search by reason or notes..." 
+                  [(ngModel)]="searchTerm"
+                  (ngModelChange)="onSearchChange()"
+                />
+                @if (searchTerm) {
+                  <button class="clear-btn" (click)="searchTerm = ''; onSearchChange()">
+                    <lucide-icon name="x" [size]="16"></lucide-icon>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Filter by status -->
+            <div class="col-md-3">
+              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+                <option value="ALL">All statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="ACCEPTED">Accepted</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REFUSED">Refused</option>
+                <option value="RESCHEDULED">Rescheduled</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+
+            <!-- Filter by date -->
+            <div class="col-md-3">
+              <select class="form-select" [(ngModel)]="dateFilter" (ngModelChange)="onFilterChange()">
+                <option value="ALL">All dates</option>
+                <option value="TODAY">Today</option>
+                <option value="WEEK">This week</option>
+                <option value="MONTH">This month</option>
+                <option value="PAST">Past</option>
+                <option value="UPCOMING">Upcoming</option>
+              </select>
+            </div>
+
+            <!-- Reset button -->
+            <div class="col-md-2">
+              <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+                <lucide-icon name="rotate-ccw" [size]="16"></lucide-icon>
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Search results and sorting -->
+          <div class="mt-3 d-flex justify-content-between align-items-center">
+            @if (searchTerm || statusFilter !== 'ALL' || dateFilter !== 'ALL') {
+              <small class="text-muted">
+                <lucide-icon name="filter" [size]="14"></lucide-icon>
+                {{ filteredAppointments.length }} result(s) found
+              </small>
+            } @else {
+              <div></div>
+            }
+            
+            <!-- Sort -->
+            <div class="sort-controls">
+              <select class="form-select form-select-sm" [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
+                <option value="date">Sort by date</option>
+                <option value="status">Sort by status</option>
+              </select>
+              <button class="btn btn-sm btn-outline-secondary" (click)="toggleSortOrder()">
+                <lucide-icon [name]="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'" [size]="16"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Liste des rendez-vous (Tous) -->
+    @if (activeTab === 'all') {
+      @if (filteredAppointments.length === 0) {
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <lucide-icon name="calendar-x" [size]="64" class="text-muted mb-3"></lucide-icon>
+            <h5>No appointments found</h5>
+            <p class="text-muted">
+              @if (searchTerm || statusFilter !== 'ALL' || dateFilter !== 'ALL') {
+                Try modifying your search criteria
+              } @else {
+                Your appointments will appear here
+              }
+            </p>
+          </div>
+        </div>
+      } @else {
+        <div [class]="viewMode === 'grid' ? 'appointments-grid' : 'appointments-list'">
+          @for (apt of filteredAppointments; track apt.id) {
+            <div class="appointment-card" [class.list-view]="viewMode === 'list'">
+              <div class="appointment-header">
+                <div class="appointment-date">
+                  <lucide-icon name="calendar" [size]="20"></lucide-icon>
+                  <div>
+                    <div class="date-main">{{ apt.dateTime | date:'dd MMM yyyy' }}</div>
+                    <div class="date-time">{{ apt.dateTime | date:'HH:mm' }}</div>
+                  </div>
+                </div>
+                <span class="badge badge-{{ getStatusClass(apt.status || '') }}">
+                  <lucide-icon [name]="getStatusIcon(apt.status || '')" [size]="12"></lucide-icon>
+                  {{ apt.status }}
+                </span>
+              </div>
+
+              <div class="appointment-body">
+                <h6 class="appointment-reason">
+                  <lucide-icon name="file-text" [size]="16"></lucide-icon>
+                  {{ apt.reason || 'Appointment' }}
+                </h6>
+                @if (apt.parentNotes) {
+                  <p class="appointment-notes">
+                    <lucide-icon name="message-square" [size]="14"></lucide-icon>
+                    {{ apt.parentNotes }}
+                  </p>
+                }
+              </div>
+
+              <div class="appointment-actions">
+                @if (apt.status === 'PENDING') {
+                  <button class="btn btn-success btn-sm" (click)="acceptAppointment(apt.id!)">
+                    <lucide-icon name="check" [size]="14"></lucide-icon>
+                    Accept
+                  </button>
+                  <button class="btn btn-warning btn-sm" (click)="openReschedule(apt)">
+                    <lucide-icon name="clock" [size]="14"></lucide-icon>
+                    Reschedule
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="refuseAppointment(apt.id!)">
+                    <lucide-icon name="x" [size]="14"></lucide-icon>
+                    Refuse
+                  </button>
+                }
+                @if (apt.status === 'ACCEPTED') {
+                  <button class="btn btn-primary btn-sm" (click)="completeAppointment(apt.id!)">
+                    <lucide-icon name="check-circle" [size]="14"></lucide-icon>
+                    Mark as completed
+                  </button>
+                }
+                <button class="btn btn-info btn-sm" (click)="showDetails(apt)">
+                  <lucide-icon name="eye" [size]="14"></lucide-icon>
+                  Details
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Liste des rendez-vous en attente -->
+    @if (activeTab === 'pending') {
+      @if (pendingAppointments.length === 0) {
+        <div class="card">
+          <div class="card-body text-center py-5">
+            <lucide-icon name="check-circle-2" [size]="64" class="text-success mb-3"></lucide-icon>
+            <h5>No pending requests</h5>
+            <p class="text-muted">All requests have been processed</p>
+          </div>
+        </div>
+      } @else {
+        <div class="appointments-grid">
+          @for (apt of pendingAppointments; track apt.id) {
+            <div class="appointment-card pending-card">
+              <div class="appointment-header">
+                <div class="appointment-date">
+                  <lucide-icon name="calendar" [size]="20"></lucide-icon>
+                  <div>
+                    <div class="date-main">{{ apt.dateTime | date:'dd MMM yyyy' }}</div>
+                    <div class="date-time">{{ apt.dateTime | date:'HH:mm' }}</div>
+                  </div>
+                </div>
+                <span class="badge badge-warning">
+                  <lucide-icon name="clock" [size]="12"></lucide-icon>
+                  PENDING
+                </span>
+              </div>
+
+              <div class="appointment-body">
+                <h6 class="appointment-reason">
+                  <lucide-icon name="file-text" [size]="16"></lucide-icon>
+                  {{ apt.reason || 'Appointment request' }}
+                </h6>
+                @if (apt.parentNotes) {
+                  <p class="appointment-notes">
+                    <lucide-icon name="message-square" [size]="14"></lucide-icon>
+                    {{ apt.parentNotes }}
+                  </p>
+                }
+              </div>
+
+              <div class="appointment-actions">
+                <button class="btn btn-success btn-sm" (click)="acceptAppointment(apt.id!)">
+                  <lucide-icon name="check" [size]="14"></lucide-icon>
+                  Accept
+                </button>
+                <button class="btn btn-warning btn-sm" (click)="openReschedule(apt)">
+                  <lucide-icon name="clock" [size]="14"></lucide-icon>
+                  Reschedule
+                </button>
+                <button class="btn btn-danger btn-sm" (click)="refuseAppointment(apt.id!)">
+                  <lucide-icon name="x" [size]="14"></lucide-icon>
+                  Refuse
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+</div>
+
+<!-- Modal de report -->
+@if (showRescheduleModal) {
+  <div class="modal-backdrop" (click)="showRescheduleModal = false">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <lucide-icon name="clock" [size]="20"></lucide-icon>
+            Reschedule Appointment
+          </h5>
+          <button class="btn-close" (click)="showRescheduleModal = false">
+            <lucide-icon name="x" [size]="18"></lucide-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">New Date & Time <span class="text-danger">*</span></label>
+            <input type="datetime-local" class="form-control" [(ngModel)]="rescheduleDate" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reason for rescheduling</label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="rescheduleNotes" 
+              rows="3" 
+              placeholder="Explain why you are rescheduling this appointment...">
+            </textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showRescheduleModal = false">
+            Cancel
+          </button>
+          <button class="btn btn-primary" (click)="submitReschedule()" [disabled]="!rescheduleDate">
+            <lucide-icon name="check" [size]="16"></lucide-icon>
+            Confirm reschedule
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de détails -->
+@if (showDetailsModal && selectedAppointment) {
+  <div class="modal-backdrop" (click)="showDetailsModal = false">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <lucide-icon name="info" [size]="20"></lucide-icon>
+            Appointment Details
+          </h5>
+          <button class="btn-close" (click)="showDetailsModal = false">
+            <lucide-icon name="x" [size]="18"></lucide-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="detail-row">
+            <div class="detail-label">
+              <lucide-icon name="calendar" [size]="16"></lucide-icon>
+              Date & Time
+            </div>
+            <div class="detail-value">
+              {{ selectedAppointment.dateTime | date:'dd MMMM yyyy at HH:mm' }}
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label">
+              <lucide-icon name="activity" [size]="16"></lucide-icon>
+              Status
+            </div>
+            <div class="detail-value">
+              <span class="badge badge-{{ getStatusClass(selectedAppointment.status || '') }}">
+                <lucide-icon [name]="getStatusIcon(selectedAppointment.status || '')" [size]="12"></lucide-icon>
+                {{ selectedAppointment.status }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label">
+              <lucide-icon name="file-text" [size]="16"></lucide-icon>
+              Reason
+            </div>
+            <div class="detail-value">
+              {{ selectedAppointment.reason || 'Not specified' }}
+            </div>
+          </div>
+          
+          @if (selectedAppointment.parentNotes) {
+            <div class="detail-row">
+              <div class="detail-label">
+                <lucide-icon name="message-square" [size]="16"></lucide-icon>
+                Parent notes
+              </div>
+              <div class="detail-value">
+                {{ selectedAppointment.parentNotes }}
+              </div>
+            </div>
+          }
+          
+          @if (selectedAppointment.doctorNotes) {
+            <div class="detail-row">
+              <div class="detail-label">
+                <lucide-icon name="stethoscope" [size]="16"></lucide-icon>
+                Your notes
+              </div>
+              <div class="detail-value">
+                {{ selectedAppointment.doctorNotes }}
+              </div>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showDetailsModal = false">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

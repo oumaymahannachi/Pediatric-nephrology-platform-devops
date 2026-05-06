@@ -1,0 +1,88 @@
+<div class="treatment-list-container">
+  <div class="header">
+    <h2>Treatments</h2>
+    <button class="btn-primary" (click)="addTreatment()">
+      <i class="fas fa-plus"></i> New Treatment
+    </button>
+  </div>
+
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="patientSelect">Select a patient</label>
+      <select 
+        id="patientSelect" 
+        [(ngModel)]="selectedPatientId" 
+        (change)="onPatientChange()"
+        class="form-control">
+        <option [ngValue]="null">-- All patients --</option>
+        <option *ngFor="let patient of patients" [ngValue]="patient.id">
+          {{ patient.fullName }} - {{ patient.dateOfBirth | date: 'dd/MM/yyyy' }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading...
+  </div>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div *ngIf="!loading && !selectedPatientId" class="info-message">
+    <i class="fas fa-info-circle"></i>
+    <p>Select a patient to view their treatments</p>
+  </div>
+
+  <div *ngIf="!loading && selectedPatientId && treatments.length === 0" class="empty-state">
+    <i class="fas fa-capsules"></i>
+    <p>No treatments found for this patient</p>
+  </div>
+
+  <div class="treatments-grid" *ngIf="!loading && treatments.length > 0">
+    <div class="treatment-card" *ngFor="let treatment of treatments">
+      <div class="card-header">
+        <span class="treatment-date">
+          {{ treatment.dateDebut | date: 'dd/MM/yyyy' }} - {{ treatment.dateFin | date: 'dd/MM/yyyy' }}
+        </span>
+        <span class="status-badge" [ngClass]="getStatutClass(treatment.statut)">
+          {{ getStatutLabel(treatment.statut) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <h3>{{ treatment.diagnostic }}</h3>
+        
+        <div class="objective" *ngIf="treatment.objectifTraitement">
+          <strong>Objective:</strong> {{ treatment.objectifTraitement }}
+        </div>
+
+        <div class="medications">
+          <h4>Medications ({{ treatment.medicaments.length }})</h4>
+          <ul>
+            <li *ngFor="let med of treatment.medicaments">
+              <strong>{{ med.nomCommercial }}</strong> ({{ med.dci }})
+              <br>
+              <small>
+                {{ med.posologie.quantite }} {{ med.posologie.unite }} - 
+                {{ med.posologie.frequence }}
+              </small>
+            </li>
+          </ul>
+        </div>
+
+        <div class="notes" *ngIf="treatment.notes">
+          <strong>Notes:</strong> {{ treatment.notes }}
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn-warning" (click)="editTreatment(treatment)">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="btn-danger" (click)="deleteTreatment(treatment)">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

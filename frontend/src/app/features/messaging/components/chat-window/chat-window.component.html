@@ -1,0 +1,245 @@
+<div class="chat-window">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-info">
+      <div class="chat-avatar">💬</div>
+      <div>
+        <h3>{{ conversation.subject }}</h3>
+        <p class="context-info" *ngIf="conversation.contextType">🔗 {{ conversation.contextType }}</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-call" (click)="startAudioCall()" title="Audio call">📞</button>
+      <button class="btn-call" (click)="startVideoCall()" title="Video call">📹</button>
+      <button class="btn-call" (click)="openGallery()" title="Media gallery">🖼️</button>
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
+          placeholder="Search messages..." class="search-input">
+        <button *ngIf="searchQuery" (click)="clearSearch()" class="btn-clear-search">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="searchQuery" class="search-info">
+    {{ filteredMessages.length }} result(s) for "{{ searchQuery }}"
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" (click)="showReactionPickerFor = null">
+    <div *ngIf="loading" class="loading">⏳ Loading messages...</div>
+    <div *ngIf="error" class="error-message">
+      ⚠️ {{ error }}
+      <button class="btn-retry" (click)="loadMessages()">Retry</button>
+    </div>
+    <div *ngIf="!loading && filteredMessages.length === 0" class="empty-state">
+      <p>{{ searchQuery ? 'No messages found' : 'No messages yet. Start the conversation!' }}</p>
+    </div>
+
+    <div class="messages-list" *ngIf="!loading && filteredMessages.length > 0">
+      <div *ngFor="let message of filteredMessages"
+        class="message-item"
+        [class.my-message]="isMyMessage(message)"
+        [class.other-message]="!isMyMessage(message)"
+        [class.urgent-message]="isUrgent(message)"
+        [class.deleted-message]="message.isDeleted">
+
+        <!-- Action buttons -->
+        <div class="message-actions" *ngIf="!message.isDeleted">
+          <button class="action-btn" title="React" (click)="toggleReactionPicker(message.id); $event.stopPropagation()">😊</button>
+          <button class="action-btn" title="Reply" (click)="setReply(message)">↩</button>
+          <button *ngIf="isMyMessage(message)" class="action-btn" title="Edit" (click)="startEdit(message)">✏</button>
+          <button *ngIf="isMyMessage(message)" class="action-btn action-delete" title="Delete" (click)="deleteMessage(message)">🗑</button>
+        </div>
+
+        <div class="message-bubble">
+          <!-- Urgent badge -->
+          <div *ngIf="isUrgent(message)" class="urgent-badge">🚨 URGENT</div>
+
+          <!-- Reply preview -->
+          <div *ngIf="message.replyTo" class="reply-preview">
+            <div class="reply-line"></div>
+            <div class="reply-content">
+              <span class="reply-sender">{{ message.replyTo.senderType }}</span>
+              <span class="reply-text">{{ message.replyTo.content | slice:0:80 }}</span>
+            </div>
+          </div>
+
+          <!-- Message content -->
+          <div class="message-content" [class.deleted-content]="message.isDeleted">
+            <span *ngIf="!isVoiceMessage(message)">{{ message.content }}</span>
+            <div *ngIf="isVoiceMessage(message)" class="voice-player">
+              <span>🎤</span>
+              <audio controls [src]="getVoiceUrl(message)" style="height:32px; max-width:200px;"></audio>
+            </div>
+          </div>
+
+          <!-- Attachments (non-audio) -->
+          <div class="message-attachments" *ngIf="message.attachments && message.attachments.length > 0">
+            <div class="attachment" *ngFor="let attachment of message.attachments">
+              <div *ngIf="attachment.fileType && attachment.fileType.startsWith('image/')" class="attachment-image">
+                <img [src]="attachment.fileUrl" [alt]="attachment.fileName" (click)="openAttachment(attachment)">
+              </div>
+              <div *ngIf="attachment.fileType && !attachment.fileType.startsWith('image/') && !attachment.fileType.startsWith('audio/')"
+                class="attachment-file">
+                <span *ngIf="attachment.fileType === 'application/pdf'" class="pdf-preview-btn"
+                  (click)="openPdfPreview(attachment.fileUrl)">
+                  📄 {{ attachment.fileName }}
+                  <span class="pdf-badge">PDF</span>
+                </span>
+                <span *ngIf="attachment.fileType !== 'application/pdf'"
+                  (click)="openAttachment(attachment)" style="cursor:pointer">
+                  📄 {{ attachment.fileName }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Meta -->
+          <div class="message-meta">
+            <span class="message-time">{{ message.createdAt | date:'HH:mm' }}</span>
+            <span *ngIf="message.editedAt" class="edited-label">(edited)</span>
+            <span *ngIf="isMyMessage(message) && message.isRead" class="read-icon">✓✓</span>
+            <span *ngIf="isMyMessage(message) && !message.isRead" class="sent-icon">✓</span>
+          </div>
+
+          <!-- Reactions -->
+          <div class="reactions-display" *ngIf="getReactionEntries(message.reactions).length > 0">
+            <span *ngFor="let r of getReactionEntries(message.reactions)"
+              class="reaction-chip" [class.reacted]="r.hasReacted"
+              (click)="addReaction(message, r.emoji); $event.stopPropagation()">
+              {{ r.emoji }} {{ r.count }}
+            </span>
+          </div>
+
+          <!-- Reaction picker -->
+          <div class="reaction-picker" *ngIf="showReactionPickerFor === message.id" (click)="$event.stopPropagation()">
+            <span *ngFor="let emoji of availableReactions" class="reaction-option"
+              (click)="addReaction(message, emoji)">{{ emoji }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="message-input-container">
+
+    <!-- Reply bar -->
+    <div *ngIf="replyToMessage" class="reply-bar">
+      <div class="reply-bar-content">
+        <span>↩</span>
+        <span class="reply-bar-text">{{ replyToMessage.content | slice:0:60 }}...</span>
+      </div>
+      <button class="btn-cancel-reply" (click)="cancelReply()">✕</button>
+    </div>
+
+    <!-- Edit bar -->
+    <div *ngIf="editingMessage" class="edit-bar">
+      <span>✏ Editing message</span>
+      <button class="btn-cancel-reply" (click)="cancelEdit()">✕</button>
+    </div>
+
+    <!-- Recording indicator -->
+    <div *ngIf="isRecording" class="recording-bar">
+      <span class="recording-dot">●</span>
+      <span>Recording... {{ formatDuration(recordingDuration) }}</span>
+      <button class="btn-stop-recording" (click)="stopRecording()">✓ Send</button>
+      <button class="btn-cancel-recording" (click)="cancelRecording()">✕ Cancel</button>
+    </div>
+
+    <!-- Selected files -->
+    <div class="selected-files" *ngIf="selectedFiles.length > 0">
+      <div class="file-preview" *ngFor="let file of selectedFiles; let i = index">
+        <span>📎</span>
+        <span class="file-name">{{ file.name }}</span>
+        <span class="file-size">({{ formatFileSize(file.size) }})</span>
+        <button class="btn-remove-file" (click)="removeFile(i)" type="button">✕</button>
+      </div>
+    </div>
+
+    <!-- Input row -->
+    <div class="input-row" *ngIf="!isRecording">
+      <button class="btn-priority"
+        [class.urgent]="selectedPriority === MessagePriority.URGENT"
+        (click)="selectedPriority = selectedPriority === MessagePriority.URGENT ? MessagePriority.NORMAL : MessagePriority.URGENT"
+        title="Toggle urgent">🚨</button>
+
+      <label class="btn-attach" title="Attach file">
+        📎
+        <input type="file" multiple accept="image/*,.pdf"
+          (change)="onFileSelected($event)" style="display: none;"
+          [disabled]="sending || uploadingFiles">
+      </label>
+
+      <!-- Voice record button -->
+      <button class="btn-voice" (click)="startRecording()" title="Record voice message"
+        [disabled]="sending">🎤</button>
+
+      <textarea class="message-input"
+        [(ngModel)]="newMessageContent"
+        (keypress)="onKeyPress($event)"
+        [placeholder]="editingMessage ? 'Edit message...' : 'Type your message...'"
+        rows="2"
+        [disabled]="sending || uploadingFiles"></textarea>
+
+      <button class="btn-send"
+        (click)="sendMessage()"
+        [disabled]="(!newMessageContent.trim() && selectedFiles.length === 0) || sending || uploadingFiles">
+        <span *ngIf="!sending && !uploadingFiles">{{ editingMessage ? '✓' : '➤' }}</span>
+        <span *ngIf="sending || uploadingFiles">⏳</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Media Gallery Modal -->
+<div class="modal-overlay" *ngIf="showGallery" (click)="closeGallery()">
+  <div class="gallery-modal" (click)="$event.stopPropagation()">
+    <div class="gallery-header">
+      <h3>📁 Media & Files</h3>
+      <button class="btn-close-modal" (click)="closeGallery()">✕</button>
+    </div>
+    <div class="gallery-tabs">
+      <button [class.active]="galleryTab === 'images'" (click)="galleryTab = 'images'">
+        🖼️ Images ({{ galleryImages.length }})
+      </button>
+      <button [class.active]="galleryTab === 'files'" (click)="galleryTab = 'files'">
+        📄 Files ({{ galleryFiles.length }})
+      </button>
+    </div>
+    <div class="gallery-content">
+      <div *ngIf="galleryTab === 'images'" class="gallery-grid">
+        <div *ngIf="galleryImages.length === 0" class="gallery-empty">No images shared yet</div>
+        <img *ngFor="let img of galleryImages" [src]="img.url" [alt]="img.name"
+          class="gallery-img" (click)="openAttachment({fileUrl: img.url})">
+      </div>
+      <div *ngIf="galleryTab === 'files'" class="gallery-files-list">
+        <div *ngIf="galleryFiles.length === 0" class="gallery-empty">No files shared yet</div>
+        <div *ngFor="let file of galleryFiles" class="gallery-file-item"
+          (click)="openPdfPreview(file.url)">
+          <span>📄</span>
+          <div>
+            <div class="gallery-file-name">{{ file.name }}</div>
+            <div class="gallery-file-size">{{ formatFileSize(file.size) }}</div>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div class="modal-overlay" *ngIf="pdfPreviewUrl" (click)="closePdfPreview()">
+  <div class="pdf-modal" (click)="$event.stopPropagation()">
+    <div class="pdf-modal-header">
+      <span>📄 PDF Preview</span>
+      <div style="display:flex;gap:8px">
+        <a [href]="pdfPreviewUrl" target="_blank" class="btn-download-pdf">⬇️ Download</a>
+        <button class="btn-close-modal" (click)="closePdfPreview()">✕</button>
+      </div>
+    </div>
+    <iframe [src]="pdfPreviewUrl" class="pdf-iframe" title="PDF Preview"></iframe>
+  </div>
+</div>

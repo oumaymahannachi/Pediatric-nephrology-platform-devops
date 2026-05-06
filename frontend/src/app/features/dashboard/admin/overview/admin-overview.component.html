@@ -1,0 +1,289 @@
+@if (loading) {
+  <div class="text-center py-5">
+    <div class="loading-spinner"></div>
+    <p class="text-muted mt-3">Loading dashboard...</p>
+  </div>
+} @else {
+  <!-- ─── Welcome Banner ─── -->
+  <div class="welcome-banner">
+    <div class="welcome-text">
+      <h4>Welcome back, Admin!</h4>
+      <p>Here's what's happening on PediaLink today.</p>
+    </div>
+    <div class="welcome-date">
+      <lucide-icon name="calendar" [size]="16"></lucide-icon>
+      <span>{{ today | date:'EEEE, MMMM d, y' }}</span>
+    </div>
+  </div>
+
+  <!-- ─── KPI Stat Cards ─── -->
+  <div class="row">
+    @for (card of cards; track card.title) {
+      <div class="col-md-6 col-xl-3">
+        <div class="card {{ card.background }} order-card">
+          <div class="card-body">
+            <h6 class="text-white">{{ card.title }}</h6>
+            <h2 class="text-end text-white">
+              <lucide-icon [name]="card.icon" [size]="28" class="float-start"></lucide-icon>
+              <span>{{ card.number }}</span>
+            </h2>
+            <p class="m-b-0 text-white">{{ card.text }}<span class="float-end">{{ card.percent }}</span></p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ─── Row 2 : User Growth (wide) + Roles Donut ─── -->
+  <div class="row">
+    <div class="col-xl-8 col-md-12">
+      <div class="card chart-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5>User Growth Trend</h5>
+          <span class="badge badge-light-primary">Last 6 months</span>
+        </div>
+        <div class="card-body">
+          <apx-chart
+            [chart]="growthChart.chart!"
+            [series]="growthChart.series!"
+            [xaxis]="growthChart.xaxis!"
+            [yaxis]="growthChart.yaxis!"
+            [colors]="growthChart.colors!"
+            [dataLabels]="growthChart.dataLabels!"
+            [stroke]="growthChart.stroke!"
+            [fill]="growthChart.fill!"
+            [grid]="growthChart.grid!"
+            [tooltip]="growthChart.tooltip!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+      <div class="card chart-card h-match">
+        <div class="card-header"><h5>Roles Distribution</h5></div>
+        <div class="card-body">
+          <apx-chart
+            [chart]="rolesChart.chart!"
+            [series]="rolesChart.series!"
+            [labels]="rolesChart.labels!"
+            [colors]="rolesChart.colors!"
+            [plotOptions]="rolesChart.plotOptions!"
+            [dataLabels]="rolesChart.dataLabels!"
+            [legend]="rolesChart.legend!"
+            [stroke]="rolesChart.stroke!"
+            [tooltip]="rolesChart.tooltip!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Row 3 : Treatment Summary Cards ─── -->
+  <div class="row">
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-widget">
+        <div class="card-body">
+          <div class="stat-icon stat-blue"><lucide-icon name="baby" [size]="22"></lucide-icon></div>
+          <div class="stat-content">
+            <h3>{{ stats.children }}</h3>
+            <p>Children Registered</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-widget">
+        <div class="card-body">
+          <div class="stat-icon stat-green"><lucide-icon name="ruler" [size]="22"></lucide-icon></div>
+          <div class="stat-content">
+            <h3>{{ stats.measurements }}</h3>
+            <p>Growth Measurements</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-widget">
+        <div class="card-body">
+          <div class="stat-icon stat-yellow"><lucide-icon name="clipboard" [size]="22"></lucide-icon></div>
+          <div class="stat-content">
+            <h3>{{ stats.plans }}</h3>
+            <p>Nutritional Plans</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+      <div class="card stat-widget">
+        <div class="card-body">
+          <div class="stat-icon stat-red"><lucide-icon name="calendar" [size]="22"></lucide-icon></div>
+          <div class="stat-content">
+            <h3>{{ stats.appointments }}</h3>
+            <p>Total Appointments</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Row 4 : Status Donut + Monthly Bar + Platform Radial ─── -->
+  <div class="row">
+    <div class="col-xl-4 col-md-6">
+      <div class="card chart-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5>User Status</h5>
+          <span class="badge badge-success">{{ stats.activeUsers }} active</span>
+        </div>
+        <div class="card-body">
+          <apx-chart
+            [chart]="statusChart.chart!"
+            [series]="statusChart.series!"
+            [labels]="statusChart.labels!"
+            [colors]="statusChart.colors!"
+            [plotOptions]="statusChart.plotOptions!"
+            [dataLabels]="statusChart.dataLabels!"
+            [legend]="statusChart.legend!"
+            [stroke]="statusChart.stroke!"
+            [tooltip]="statusChart.tooltip!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+      <div class="card chart-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5>Monthly Activity</h5>
+          <span class="badge badge-light-primary">Appointments</span>
+        </div>
+        <div class="card-body">
+          <apx-chart
+            [chart]="barChart.chart!"
+            [series]="barChart.series!"
+            [xaxis]="barChart.xaxis!"
+            [colors]="barChart.colors!"
+            [plotOptions]="barChart.plotOptions!"
+            [dataLabels]="barChart.dataLabels!"
+            [grid]="barChart.grid!"
+            [tooltip]="barChart.tooltip!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-md-12">
+      <div class="card chart-card">
+        <div class="card-header"><h5>Platform Health</h5></div>
+        <div class="card-body">
+          <apx-chart
+            [chart]="radialChart.chart!"
+            [series]="radialChart.series!"
+            [labels]="radialChart.labels!"
+            [colors]="radialChart.colors!"
+            [plotOptions]="radialChart.plotOptions!"
+          ></apx-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Row 5 : Recent Users Table + Quick Actions ─── -->
+  <div class="row">
+    <div class="col-xl-8 col-md-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5>Recent Users</h5>
+          <a class="btn btn-sm btn-outline-primary" routerLink="/admin/users">View All</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of recentUsers; track u.email) {
+                  <tr>
+                    <td>
+                      <div class="table-user-cell">
+                        <div class="avatar-circle">{{ (u.fullName || '?').charAt(0) }}</div>
+                        <div>
+                          <strong>{{ u.fullName }}</strong>
+                          <div class="small text-muted">{{ u.email }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="role-chip role-{{ u.role | lowercase }}">{{ u.role }}</span></td>
+                    <td>
+                      <span class="status-dot" [class.active]="u.status !== 'BANNED'" [class.banned]="u.status === 'BANNED'"></span>
+                      {{ u.status === 'BANNED' ? 'Banned' : 'Active' }}
+                    </td>
+                    <td class="text-muted small">{{ u.createdAt | date:'MMM d, y' }}</td>
+                  </tr>
+                }
+                @if (recentUsers.length === 0) {
+                  <tr><td colspan="4" class="text-center text-muted py-4">No users yet</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4 col-md-12">
+      <div class="card">
+        <div class="card-header"><h5>Quick Actions</h5></div>
+        <div class="card-body quick-actions">
+          <a class="action-item" routerLink="/admin/users">
+            <div class="action-icon action-blue"><lucide-icon name="users" [size]="20"></lucide-icon></div>
+            <div class="action-text">
+              <strong>Manage Users</strong>
+              <span>{{ stats.totalUsers }} accounts</span>
+            </div>
+            <lucide-icon name="chevron-right" [size]="16" class="action-arrow"></lucide-icon>
+          </a>
+          <a class="action-item" routerLink="/admin/treatment">
+            <div class="action-icon action-green"><lucide-icon name="activity" [size]="20"></lucide-icon></div>
+            <div class="action-text">
+              <strong>Treatment Data</strong>
+              <span>{{ stats.appointments }} appointments</span>
+            </div>
+            <lucide-icon name="chevron-right" [size]="16" class="action-arrow"></lucide-icon>
+          </a>
+          <a class="action-item" routerLink="/admin/users">
+            <div class="action-icon action-yellow"><lucide-icon name="shield-check" [size]="20"></lucide-icon></div>
+            <div class="action-text">
+              <strong>Review Accounts</strong>
+              <span>{{ stats.bannedUsers }} banned</span>
+            </div>
+            <lucide-icon name="chevron-right" [size]="16" class="action-arrow"></lucide-icon>
+          </a>
+          <a class="action-item" routerLink="/admin/treatment">
+            <div class="action-icon action-red"><lucide-icon name="clipboard" [size]="20"></lucide-icon></div>
+            <div class="action-text">
+              <strong>Nutritional Plans</strong>
+              <span>{{ stats.plans }} plans</span>
+            </div>
+            <lucide-icon name="chevron-right" [size]="16" class="action-arrow"></lucide-icon>
+          </a>
+        </div>
+      </div>
+
+      <!-- Platform summary card -->
+      <div class="card summary-card bg-c-blue">
+        <div class="card-body">
+          <div class="summary-icon"><lucide-icon name="heart" [size]="32"></lucide-icon></div>
+          <h5>PediaLink Platform</h5>
+          <p>{{ stats.totalUsers }} users &middot; {{ stats.children }} children</p>
+          <div class="summary-bar">
+            <div class="summary-bar-fill" [style.width.%]="stats.activeUsers * 100 / (stats.totalUsers || 1)"></div>
+          </div>
+          <span class="summary-label">{{ (stats.activeUsers * 100 / (stats.totalUsers || 1)) | number:'1.0-0' }}% active users</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

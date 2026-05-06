@@ -1,0 +1,94 @@
+<div class="dossier-medical-container">
+  <div class="header">
+    <h1><i class="fas fa-folder-medical"></i> Medical Record</h1>
+    <p class="subtitle">Consultations, Dialysis and Examinations</p>
+  </div>
+
+  <!-- Patient selection -->
+  <div class="patient-selector">
+    <label for="childSelect">Select a patient:</label>
+    <select 
+      id="childSelect" 
+      [(ngModel)]="selectedChildId" 
+      (ngModelChange)="onChildChange()"
+      class="form-select">
+      <option [value]="null">-- Choose a child --</option>
+      <option *ngFor="let child of children" [value]="child.id">
+        {{ child.fullName }} ({{ calculateAge(child.dateOfBirth) }})
+      </option>
+    </select>
+  </div>
+
+  <!-- Patient information -->
+  <div *ngIf="selectedChild" class="patient-info">
+    <div class="info-card">
+      <i class="fas fa-user-circle"></i>
+      <div>
+        <strong>{{ selectedChild.fullName }}</strong>
+        <span>{{ selectedChild.gender }} • {{ calculateAge(selectedChild.dateOfBirth) }}</span>
+      </div>
+    </div>
+    <button class="btn-generate-report" (click)="generatePDFReport()" [disabled]="generatingReport">
+      <i class="fas" [class.fa-file-pdf]="!generatingReport" [class.fa-spinner]="generatingReport" [class.fa-spin]="generatingReport"></i>
+      {{ generatingReport ? 'Generating...' : 'Generate PDF Report' }}
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div *ngIf="selectedChildId" class="tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'consultations'"
+      (click)="setTab('consultations')">
+      <i class="fas fa-stethoscope"></i> Consultations
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'dialyse'"
+      (click)="setTab('dialyse')">
+      <i class="fas fa-heartbeat"></i> Dialysis
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'examens'"
+      (click)="setTab('examens')">
+      <i class="fas fa-flask"></i> Examinations
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'intelligence'"
+      (click)="setTab('intelligence')">
+      <i class="fas fa-brain"></i> Medical Intelligence
+    </button>
+  </div>
+
+  <!-- Tab content -->
+  <div *ngIf="selectedChildId" class="tab-content">
+    <div *ngIf="activeTab === 'consultations'">
+      <app-consultation-list [patientId]="selectedChildId"></app-consultation-list>
+    </div>
+
+    <div *ngIf="activeTab === 'dialyse'">
+      <app-dialyse-list [patientId]="selectedChildId"></app-dialyse-list>
+    </div>
+
+    <div *ngIf="activeTab === 'examens'">
+      <app-examen-list [patientId]="selectedChildId"></app-examen-list>
+    </div>
+
+    <div *ngIf="activeTab === 'intelligence'">
+      <app-medical-intelligence 
+        [patientId]="selectedChildId"
+        [patientName]="selectedChild?.fullName || ''"
+        [patientDateOfBirth]="selectedChild?.dateOfBirth || ''">
+      </app-medical-intelligence>
+    </div>
+  </div>
+
+  <!-- Message if no patient selected -->
+  <div *ngIf="!selectedChildId" class="empty-state">
+    <i class="fas fa-folder-open"></i>
+    <h3>No patient selected</h3>
+    <p>Please select a patient to view their medical record</p>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="auth-page">
+  <div class="auth-page__card animate-fade-in-up">
+    <div class="auth-page__header">
+      <a routerLink="/" class="auth-page__brand">
+        <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="auth-page__logo" />
+      </a>
+      <h1>Verify your email</h1>
+      <p>We sent a 6-digit code to <strong>{{ email }}</strong></p>
+    </div>
+    @if (error) {
+      <div class="alert alert-danger">{{ error }}</div>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-group">
+        <label for="code"><lucide-icon name="shield-check" [size]="14"></lucide-icon> Verification Code</label>
+        <input id="code" type="text" formControlName="code"
+               placeholder="000000" maxlength="6"
+               class="otp-input" autocomplete="one-time-code" />
+        @if (form.get('code')?.touched && form.get('code')?.hasError('required')) {
+          <div class="error-msg">Verification code is required</div>
+        }
+        @if (form.get('code')?.touched && (form.get('code')?.hasError('minlength') || form.get('code')?.hasError('maxlength')) && !form.get('code')?.hasError('required')) {
+          <div class="error-msg">Code must be exactly 6 digits</div>
+        }
+      </div>
+      <button type="submit" class="btn-primary auth-page__submit" [disabled]="loading">
+        {{ loading ? 'Verifying...' : 'Verify Code' }}
+      </button>
+    </form>
+    <p class="auth-page__switch">
+      Didn't receive the code?
+      <a href="javascript:void(0)" (click)="resendOtp()">Resend OTP</a>
+    </p>
+  </div>
+</div>

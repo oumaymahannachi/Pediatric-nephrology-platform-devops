@@ -1,0 +1,46 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.how-it-works {
+  @include section-padding;
+  background: $gray-50;
+
+  &__steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-8;
+    text-align: center;
+
+    @include respond(sm) { grid-template-columns: repeat(2, 1fr); }
+    @include respond(lg) { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  &__step {
+    padding: $space-6;
+  }
+
+  &__number {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto $space-4;
+    background: linear-gradient(135deg, $primary, $secondary);
+    color: $white;
+    font-size: $font-size-xl;
+    font-weight: 800;
+    border-radius: $radius-xl;
+  }
+
+  &__step-title {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    margin-bottom: $space-2;
+    color: $gray-900;
+  }
+
+  &__step-desc {
+    font-size: $font-size-sm;
+    color: $gray-500;
+    line-height: 1.7;
+  }
+}

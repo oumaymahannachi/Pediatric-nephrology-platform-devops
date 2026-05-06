@@ -1,0 +1,104 @@
+<div class="treatment-form-container">
+  <div class="header">
+    <h2>{{ isEditMode ? 'Edit Treatment' : 'New Treatment' }}</h2>
+  </div>
+
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <form [formGroup]="treatmentForm" (ngSubmit)="onSubmit()">
+    <div class="form-section">
+      <h3>General Information</h3>
+      
+      <div class="form-group">
+        <label>Patient *</label>
+        <select formControlName="patientId" class="form-control">
+          <option value="">-- Select a patient --</option>
+          <option *ngFor="let patient of patients" [value]="patient.id">
+            {{ patient.fullName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Diagnosis *</label>
+        <textarea formControlName="diagnostic" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Date *</label>
+          <input type="date" formControlName="dateDebut" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>End Date *</label>
+          <input type="date" formControlName="dateFin" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Treatment Objective</label>
+        <textarea formControlName="objectifTraitement" class="form-control" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea formControlName="notes" class="form-control" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h3>Medications</h3>
+        <button type="button" class="btn-secondary" (click)="addMedicament()">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      </div>
+
+      <div formArrayName="medicaments">
+        <div *ngFor="let med of medicaments.controls; let i = index" [formGroupName]="i" class="medicament-card">
+          <div class="card-header">
+            <span>Medication {{ i + 1 }}</span>
+            <button type="button" class="btn-remove" (click)="removeMedicament(i)" *ngIf="medicaments.length > 1">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Commercial Name *</label>
+              <input formControlName="nomCommercial" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Generic Name (DCI) *</label>
+              <input formControlName="dci" class="form-control">
+            </div>
+          </div>
+
+          <div formGroupName="posologie">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity *</label>
+                <input type="number" formControlName="quantite" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Unit *</label>
+                <input formControlName="unite" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Frequency *</label>
+                <input formControlName="frequence" class="form-control" placeholder="Ex: 2x/day">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+      <button type="submit" class="btn-primary" [disabled]="treatmentForm.invalid || loading">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
+    </div>
+  </form>
+</div>

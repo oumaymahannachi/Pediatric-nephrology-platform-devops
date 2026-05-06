@@ -1,0 +1,103 @@
+@if (currentUser$ | async; as user) {
+<nav class="pcoded-navbar menupos-fixed menu-light" [class.navbar-collapsed]="navCollapsed">
+  <div class="navbar-content">
+    <div class="header-logo">
+      <a routerLink="/admin" class="b-brand">
+        <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="logo" />
+      </a>
+      <a href="javascript:" class="mobile-menu" (click)="toggleNav()">
+        <span></span>
+      </a>
+    </div>
+    <div class="navbar-wrapper">
+      <ul class="nav pcoded-inner-navbar">
+        <li class="nav-item pcoded-menu-caption"><label>Navigation</label></li>
+        <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+          <a class="nav-link" routerLink="/admin">
+            <span class="pcoded-micon"><lucide-icon name="layout-dashboard" [size]="18"></lucide-icon></span>
+            <span class="pcoded-mtext">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item" routerLinkActive="active">
+          <a class="nav-link" routerLink="/admin/users">
+            <span class="pcoded-micon"><lucide-icon name="users" [size]="18"></lucide-icon></span>
+            <span class="pcoded-mtext">Users</span>
+          </a>
+        </li>
+        <li class="nav-item" routerLinkActive="active">
+          <a class="nav-link" routerLink="/admin/treatment">
+            <span class="pcoded-micon"><lucide-icon name="activity" [size]="18"></lucide-icon></span>
+            <span class="pcoded-mtext">Treatment</span>
+          </a>
+        </li>
+        <li class="nav-item pcoded-menu-caption"><label>Account</label></li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/admin/profile">
+            <span class="pcoded-micon"><lucide-icon name="user" [size]="18"></lucide-icon></span>
+            <span class="pcoded-mtext">Edit Profile</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" (click)="logout()">
+            <span class="pcoded-micon"><lucide-icon name="log-out" [size]="18"></lucide-icon></span>
+            <span class="pcoded-mtext">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<header class="navbar pcoded-header navbar-expand-lg header-blue">
+  <div class="m-header">
+    <a href="javascript:" class="mobile-menu" (click)="toggleNav()"><span></span></a>
+    <a routerLink="/admin" class="b-brand">
+      <img src="assets/brand/pedialink-logo.png" alt="PediaLink" class="logo" />
+    </a>
+  </div>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item">
+        <lucide-icon name="search" [size]="20" class="header-search-icon"></lucide-icon>
+      </li>
+    </ul>
+    <ul class="navbar-nav ms-auto">
+      <li>
+        <div class="dropdown">
+          <a href="javascript:" class="dropdown-toggle">
+            <lucide-icon name="bell" [size]="20"></lucide-icon>
+          </a>
+        </div>
+      </li>
+      <li>
+        <div class="dropdown">
+          <a href="javascript:" class="dropdown-toggle">
+            <lucide-icon name="mail" [size]="20"></lucide-icon>
+          </a>
+        </div>
+      </li>
+      <li>
+        <div class="dropdown drp-user">
+          <a href="javascript:" class="dropdown-toggle">
+            <div class="avatar-circle avatar-header">{{ (user.fullName || '?').charAt(0) }}</div>
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<div class="pcoded-main-container">
+  <div class="pcoded-wrapper">
+    <div class="pcoded-content">
+      <div class="pcoded-inner-content">
+        <div class="main-body">
+          <div class="page-wrapper">
+            <router-outlet></router-outlet>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}

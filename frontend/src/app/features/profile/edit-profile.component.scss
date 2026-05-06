@@ -1,0 +1,401 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.ep {
+  min-height: 100vh;
+  background: $gray-50;
+  padding: $space-6;
+
+  &__container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  &__top-bar {
+    display: flex;
+    align-items: center;
+    gap: $space-6;
+    margin-bottom: $space-8;
+  }
+
+  &__back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    color: $gray-500;
+    text-decoration: none;
+    font-size: $font-size-sm;
+    font-weight: 500;
+    transition: color $transition-fast;
+    &:hover { color: $primary; }
+  }
+
+  &__page-title {
+    font-size: $font-size-xl;
+    font-weight: 800;
+    color: $gray-900;
+  }
+
+  &__loader {
+    text-align: center;
+    padding: $space-16;
+    color: $gray-400;
+    p { margin-top: $space-4; font-size: $font-size-sm; }
+  }
+
+  &__spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid $gray-200;
+    border-top-color: $primary;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: ep-spin 0.7s linear infinite;
+  }
+
+  &__alert {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-4 $space-5;
+    border-radius: $radius-lg;
+    font-size: $font-size-sm;
+    font-weight: 500;
+    margin-bottom: $space-6;
+    animation: ep-slide 0.3s ease;
+
+    &--success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    &--error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    button {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: inherit;
+      opacity: 0.6;
+      &:hover { opacity: 1; }
+    }
+  }
+
+  &__layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: $space-6;
+    align-items: flex-start;
+
+    @media (max-width: $bp-md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: $space-5;
+    position: sticky;
+    top: $space-6;
+
+    @media (max-width: $bp-md) {
+      position: static;
+    }
+  }
+
+  &__card {
+    background: $white;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-sm;
+    border: 1px solid $gray-100;
+  }
+
+  &__identity {
+    text-align: center;
+    padding: $space-8 $space-6;
+  }
+
+  &__avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: $radius-full;
+    background: linear-gradient(135deg, $primary, $secondary);
+    color: $white;
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto $space-4;
+    box-shadow: 0 4px 16px rgba($primary, 0.25);
+  }
+
+  &__name {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: $gray-900;
+    margin-bottom: $space-1;
+  }
+
+  &__email {
+    font-size: $font-size-sm;
+    color: $gray-500;
+    margin-bottom: $space-4;
+  }
+
+  &__role-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-1 $space-3;
+    border-radius: $radius-full;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &[data-role='ADMIN'] { background: #fef3c7; color: #92400e; }
+    &[data-role='DOCTOR'] { background: lighten($primary, 38%); color: $primary; }
+    &[data-role='PARENT'] { background: #d1fae5; color: #065f46; }
+    &[data-role='INFIRMIER'] { background: #ede9fe; color: #5b21b6; }
+  }
+
+  &__quick-info {
+    padding: $space-5 $space-6;
+
+    h3 {
+      font-size: $font-size-sm;
+      font-weight: 700;
+      color: $gray-800;
+      margin-bottom: $space-4;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: $space-3;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: $space-3;
+      border-bottom: 1px solid $gray-100;
+
+      &:last-child { border-bottom: none; padding-bottom: 0; }
+    }
+  }
+
+  &__qi-label {
+    font-size: $font-size-xs;
+    color: $gray-500;
+    font-weight: 500;
+  }
+
+  &__qi-value {
+    font-size: $font-size-xs;
+    font-weight: 600;
+    color: $gray-800;
+
+    &--active { color: $success; }
+
+    &--verified {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      color: $success;
+    }
+
+    &--unverified {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      color: $danger;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: $space-6;
+    }
+  }
+
+  &__section {
+    padding: $space-6;
+
+    @media (max-width: $bp-sm) { padding: $space-5; }
+  }
+
+  &__section-head {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-6;
+
+    h3 { font-size: $font-size-base; font-weight: 700; color: $gray-900; margin-bottom: 2px; }
+    p { font-size: $font-size-xs; color: $gray-500; }
+  }
+
+  &__section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: lighten($primary, 35%);
+    color: $primary;
+    flex-shrink: 0;
+
+    &--blue { background: lighten($secondary, 30%); color: $secondary; }
+    &--green { background: #d1fae5; color: #059669; }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-5;
+
+    @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+  }
+
+  &__field {
+    &--full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: $font-size-xs;
+      font-weight: 600;
+      color: $gray-700;
+      margin-bottom: $space-2;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+
+      .req { color: $danger; }
+    }
+  }
+
+  &__input {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 10px $space-4;
+    border: 1.5px solid $gray-200;
+    border-radius: $radius-md;
+    background: $white;
+    transition: all $transition-fast;
+
+    &:focus-within {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.08);
+    }
+
+    &--error {
+      border-color: $danger;
+      &:focus-within { box-shadow: 0 0 0 3px rgba($danger, 0.08); }
+    }
+
+    &--locked {
+      background: $gray-50;
+      cursor: not-allowed;
+      input { color: $gray-500; cursor: not-allowed; }
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: $font-size-sm;
+      font-family: $font-family;
+      color: $gray-900;
+      background: transparent;
+      &::placeholder { color: $gray-400; }
+    }
+
+    lucide-icon { color: $gray-400; flex-shrink: 0; }
+  }
+
+  &__lock { opacity: 0.35; }
+
+  &__err {
+    display: block;
+    font-size: 11px;
+    color: $danger;
+    margin-top: $space-1;
+    font-weight: 500;
+  }
+
+  &__hint {
+    display: block;
+    font-size: 11px;
+    color: $gray-400;
+    margin-top: $space-1;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $space-3;
+    padding-top: $space-2;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 10px $space-6;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    font-family: $font-family;
+    cursor: pointer;
+    transition: all $transition-fast;
+    text-decoration: none;
+    border: none;
+
+    &--ghost {
+      background: $gray-100;
+      color: $gray-600;
+      &:hover { background: $gray-200; }
+    }
+
+    &--primary {
+      background: $primary;
+      color: $white;
+
+      &:hover:not(:disabled) {
+        background: $primary-dark;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($primary, 0.25);
+      }
+
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+
+  &__btn-spin {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba($white, 0.3);
+    border-top-color: $white;
+    border-radius: 50%;
+    animation: ep-spin 0.6s linear infinite;
+  }
+}
+
+@keyframes ep-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ep-slide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

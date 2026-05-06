@@ -113,6 +113,15 @@ pipeline {
                 }
             }
         }
+
+        stage('Monitoring') {
+            steps {
+                echo "Deploying Monitoring Stack..."
+                dir('k8s/monitoring') {
+                    sh "kubectl apply -f monitoring-stack.yml"
+                }
+            }
+        }
     }
 
     post {

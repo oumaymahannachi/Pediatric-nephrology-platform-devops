@@ -19,12 +19,13 @@ data:
         static_configs:
           - targets: 
             - 'auth-service.pedialink:8081'
-            - 'prescription-service.pedialink:8082'
-            - 'treatment-service.pedialink:8083'
+            - 'prescription-service.pedialink:8084'
+            - 'treatment-service.pedialink:8085'
             - 'api-gateway.pedialink:8080'
             - 'dossiermedical-service.pedialink:8087'
-            - 'lab-results-service.pedialink:8085'
-            - 'messaging-service.pedialink:8086'
+            - 'lab-results-service.pedialink:8089'
+            - 'messaging-service.pedialink:8090'
+            - 'treatment-monitoring-service.pedialink:8082'
 
 ---
 apiVersion: apps/v1
@@ -98,11 +99,10 @@ data:
       editable: true
       options:
         path: /etc/grafana/provisioning/dashboards
-  # Un mini dashboard simple pour tester
   sample-dashboard.json: |
     {
       "annotations": { "list": [ { "builtIn": 1, "datasource": "-- Grafana --", "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard" } ] },
-      "editable": true, "gnetId": null, "graphTooltip": 0, "id": null, "links": [], "panels": [ { "datasource": "Prometheus", "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 80 } ] } }, "overrides": [] }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }, "id": 2, "options": { "orientation": "auto", "reduceOptions": { "calcs": [ "lastNotNull" ], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true }, "pluginVersion": "8.2.5", "targets": [ { "expr": "up", "instant": true, "refId": "A" } ], "title": "Services Status (1 = UP)", "type": "stat" } ], "schemaVersion": 30, "style": "dark", "tags": [], "templating": { "list": [] }, "time": { "from": "now-6h", "to": "now" }, "timepicker": {}, "timezone": "", "title": "PediaLink - Health Overview", "uid": "pedialink-health", "version": 1 }
+      "editable": true, "panels": [ { "datasource": "Prometheus", "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 80 } ] } } }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }, "id": 2, "options": { "reduceOptions": { "calcs": [ "lastNotNull" ] } }, "targets": [ { "expr": "up", "instant": true, "refId": "A" } ], "title": "Services Status (1 = UP)", "type": "stat" } ], "schemaVersion": 30, "style": "dark", "title": "PediaLink - Health Overview", "uid": "pedialink-health", "version": 1 }
 
 ---
 apiVersion: apps/v1
@@ -130,22 +130,16 @@ spec:
               value: "admin"
           volumeMounts:
             - name: provisioning-volume
-              mountPath: /etc/grafana/provisioning/datasources
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yaml
               subPath: datasource.yaml
-            - name: dashboard-provider
+            - name: provisioning-volume
               mountPath: /etc/grafana/provisioning/dashboards/dashboard-provider.yaml
               subPath: dashboard-provider.yaml
-            - name: sample-dashboard
+            - name: provisioning-volume
               mountPath: /etc/grafana/provisioning/dashboards/sample-dashboard.json
               subPath: sample-dashboard.json
       volumes:
         - name: provisioning-volume
-          configMap:
-            name: grafana-provisioning
-        - name: dashboard-provider
-          configMap:
-            name: grafana-provisioning
-        - name: sample-dashboard
           configMap:
             name: grafana-provisioning
 

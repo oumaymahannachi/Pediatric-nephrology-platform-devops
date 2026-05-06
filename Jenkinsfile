@@ -105,7 +105,7 @@ pipeline {
 
         stage('Kubernetes - Deploy') {
             steps {
-                withKubeConfig([kubeConfigPath: 'devops/kubeconfig']) {
+                withEnv(["KUBECONFIG=${WORKSPACE}/devops/kubeconfig"]) {
                     echo "Checking Kubernetes connection..."
                     sh "kubectl cluster-info"
                     echo "Deploying to Kubernetes..."
@@ -120,7 +120,7 @@ pipeline {
 
         stage('Monitoring') {
             steps {
-                withKubeConfig([kubeConfigPath: 'devops/kubeconfig']) {
+                withEnv(["KUBECONFIG=${WORKSPACE}/devops/kubeconfig"]) {
                     echo "Deploying Monitoring Stack (Prometheus & Grafana)..."
                     dir('k8s/monitoring') {
                         sh "kubectl apply -f monitoring-stack.yml --validate=false"
